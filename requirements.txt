@@ -1,0 +1,15 @@
+Pillow
+pydantic
+starlette
+typing-extensions
+fastapi
+uvicorn
+python-dotenv
+python-multipart
+langchain
+langchain-openai
+langchain-community
+langgraph
+faiss-cpu
+sqlalchemy
+pyodbc
