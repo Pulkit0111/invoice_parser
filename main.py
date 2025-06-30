@@ -12,6 +12,8 @@ from io import BytesIO
 import json
 import base64
 from langchain_openai import ChatOpenAI
+from langchain.output_parsers import PydanticOutputParser
+from langchain_core.prompts import PromptTemplate
 
 load_dotenv()
 
@@ -81,67 +83,11 @@ class ParseResponse(BaseModel):
     error: Optional[str] = None
     processing_time: Optional[float] = None
 
+# Remove the JSON schema from EXTRACTION_PROMPT and use a parser instead
 EXTRACTION_PROMPT = """
 You are an expert at extracting structured data from Indian GST-compliant invoices. 
 
-Analyze this invoice image and extract the following information in JSON format:
-
-{
-  "invoice_number": "string - Invoice number/ID",
-  "invoice_date": "string - Invoice date in DD-MM-YYYY format",
-  "due_date": "string - Due date if mentioned",
-  "currency": "INR",
-  "vendor_information": {
-    "company_name": "string - Vendor company name",
-    "gstin": "string - Vendor GSTIN number",
-    "address": {
-      "street": "string - Street address",
-      "city": "string - City",
-      "state": "string - State",
-      "country": "string - Country",
-      "pincode": "string - PIN code"
-    },
-    "phone": "string - Phone number",
-    "email": "string - Email address"
-  },
-  "customer_information": {
-    "company_name": "string - Customer company name",
-    "gstin": "string - Customer GSTIN number",
-    "address": {
-      "street": "string - Street address", 
-      "city": "string - City",
-      "state": "string - State",
-      "country": "string - Country",
-      "pincode": "string - PIN code"
-    }
-  },
-  "line_items": [
-    {
-      "serial_number": "number - Serial number",
-      "description": "string - Product/service description",
-      "hsn_code": "string - HSN/SAC code",
-      "quantity": "number - Quantity",
-      "unit": "string - Unit of measurement",
-      "rate": "number - Rate per unit",
-      "amount": "number - Total amount for this line"
-    }
-  ],
-  "tax_calculations": {
-    "taxable_amount": "number - Total taxable amount",
-    "cgst_rate": "number - CGST rate percentage",
-    "cgst_amount": "number - CGST amount",
-    "sgst_rate": "number - SGST rate percentage", 
-    "sgst_amount": "number - SGST amount",
-    "igst_rate": "number - IGST rate percentage",
-    "igst_amount": "number - IGST amount",
-    "total_tax": "number - Total tax amount"
-  },
-  "gross_amount": "number - Gross amount before tax",
-  "net_amount": "number - Final payable amount",
-  "amount_in_words": "string - Amount in words",
-  "qr_code_data": "string - QR code content if visible",
-  "extraction_confidence": "high/medium/low - Your confidence in the extraction"
-}
+Analyze this invoice image and extract the following information accurately:
 
 IMPORTANT INSTRUCTIONS:
 1. Extract ALL visible text accurately
@@ -155,6 +101,16 @@ IMPORTANT INSTRUCTIONS:
 
 Analyze the invoice now:
 """
+
+# Create a Pydantic output parser
+parser = PydanticOutputParser(pydantic_object=InvoiceData)
+
+# Create a prompt template that includes the parser instructions
+prompt_template = PromptTemplate(
+    template=EXTRACTION_PROMPT + "\n{format_instructions}",
+    input_variables=[],
+    partial_variables={"format_instructions": parser.get_format_instructions()}
+)
 
 @app.get("/")
 async def home():
@@ -240,61 +196,52 @@ async def parse_invoice(file: UploadFile = File(...)):
         
         # Process image with Gemini
         try:
-            # For image files
             if file.content_type.startswith('image/'):
                 image = Image.open(BytesIO(file_content))
-                # Convert to RGB if necessary
                 if image.mode != 'RGB':
                     image = image.convert('RGB')
                 
-                # Create message with image and text
+                # Use the parser-enhanced prompt
+                formatted_prompt = prompt_template.format()
+                
+                # Create message with image and formatted prompt
                 message = HumanMessage(
                     content=[
-                        {"type": "text", "text": EXTRACTION_PROMPT},
+                        {"type": "text", "text": formatted_prompt},
                         {"type": "image_url", "image_url": {"url": f"data:image/{file.content_type.split('/')[-1]};base64,{base64.b64encode(file_content).decode()}"}}
                     ]
                 )
                 
                 # Generate content with Gemini
                 response = model.invoke([message])
-            
-            # Parse the response
-            response_text = response.content.strip()
-            
-            # Clean up the response (remove markdown formatting if present)
-            if response_text.startswith('```json'):
-                response_text = response_text[7:]
-            if response_text.endswith('```'):
-                response_text = response_text[:-3]
-            
-            # Parse JSON response
-            try:
-                extracted_data = json.loads(response_text)
+                response_text = response.content.strip()
                 
-                # Add raw response for debugging
-                extracted_data['raw_text'] = response_text
-                
-                # Validate and create InvoiceData object
-                invoice_data = InvoiceData(**extracted_data)
-                
-                processing_time = (datetime.now() - start_time).total_seconds()
-                
-                return ParseResponse(
-                    success=True,
-                    data=invoice_data,
-                    processing_time=processing_time
-                )
-                
-            except json.JSONDecodeError as e:
-                # If JSON parsing fails, return raw text for debugging
-                return ParseResponse(
-                    success=False,
-                    error=f"Failed to parse AI response as JSON: {str(e)}",
-                    data=InvoiceData(
-                        raw_text=response_text,
-                        extraction_confidence="low"
+                # Use the parser to validate and structure the response
+                try:
+                    # The parser will automatically handle JSON parsing and validation
+                    invoice_data = parser.parse(response_text)
+                    
+                    # Add raw response for debugging
+                    invoice_data.raw_text = response_text
+                    
+                    processing_time = (datetime.now() - start_time).total_seconds()
+                    
+                    return ParseResponse(
+                        success=True,
+                        data=invoice_data,
+                        processing_time=processing_time
                     )
-                )
+                    
+                except Exception as parse_error:
+                    # Parser will provide better error messages
+                    return ParseResponse(
+                        success=False,
+                        error=f"Failed to parse AI response: {str(parse_error)}",
+                        data=InvoiceData(
+                            raw_text=response_text,
+                            extraction_confidence="low"
+                        )
+                    )
                 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Gemini processing error: {str(e)}")
