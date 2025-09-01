@@ -153,6 +153,19 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Database Status Display -->
+                    <div id="db-status-container" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                        <div class="flex items-center">
+                            <svg id="db-status-icon" class="loading-spinner w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-blue-800">Database Status</p>
+                                <p id="db-status-message" class="text-xs text-blue-600">Saving to database...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Processing Stats -->
@@ -180,6 +193,7 @@
                             <div class="flex space-x-2">
                                 <button id="copy-json-btn" class="text-sm text-gray-500 hover:text-gray-700 hidden">Copy JSON</button>
                                 <button id="download-json-btn" class="text-sm text-gray-500 hover:text-gray-700 hidden">Download</button>
+                                <button id="save-db-btn" class="text-sm text-primary hover:text-secondary font-medium hidden">Save to DB</button>
                             </div>
                         </div>
                     </div>
@@ -242,6 +256,10 @@
         const processingTime = document.getElementById('processing-time');
         const copyJsonBtn = document.getElementById('copy-json-btn');
         const downloadJsonBtn = document.getElementById('download-json-btn');
+        const saveDbBtn = document.getElementById('save-db-btn');
+        const dbStatusContainer = document.getElementById('db-status-container');
+        const dbStatusMessage = document.getElementById('db-status-message');
+        const dbStatusIcon = document.getElementById('db-status-icon');
         const successToast = document.getElementById('success-toast');
         const toastMessage = document.getElementById('toast-message');
         const statusIndicator = document.getElementById('status-indicator');
@@ -259,6 +277,7 @@
         clearBtn.addEventListener('click', clearAll);
         copyJsonBtn.addEventListener('click', copyToClipboard);
         downloadJsonBtn.addEventListener('click', downloadJson);
+        saveDbBtn.addEventListener('click', saveToDatabase);
 
         function handleDragOver(e) {
             e.preventDefault();
@@ -399,6 +418,7 @@
             // Show action buttons
             copyJsonBtn.classList.remove('hidden');
             downloadJsonBtn.classList.remove('hidden');
+            saveDbBtn.classList.remove('hidden');
             
             // Update confidence color
             const confidenceColors = {
@@ -415,6 +435,8 @@
             statsContainer.classList.add('hidden');
             copyJsonBtn.classList.add('hidden');
             downloadJsonBtn.classList.add('hidden');
+            saveDbBtn.classList.add('hidden');
+            hideDatabaseStatus();
         }
 
         function showError(message) {
@@ -451,6 +473,88 @@
             // Reset status
             statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
             statusText.textContent = 'Ready';
+        }
+
+        // Database functions
+        function showDatabaseStatus(status, message) {
+            dbStatusMessage.textContent = message;
+            dbStatusContainer.classList.remove('hidden');
+            
+            if (status === 'saving') {
+                dbStatusIcon.classList.add('loading-spinner');
+                dbStatusContainer.className = 'mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+            } else if (status === 'success') {
+                dbStatusIcon.classList.remove('loading-spinner');
+                dbStatusContainer.className = 'mt-4 p-4 bg-green-50 border border-green-200 rounded-lg';
+                dbStatusMessage.className = 'text-xs text-green-600';
+            } else if (status === 'error') {
+                dbStatusIcon.classList.remove('loading-spinner');
+                dbStatusContainer.className = 'mt-4 p-4 bg-red-50 border border-red-200 rounded-lg';
+                dbStatusMessage.className = 'text-xs text-red-600';
+            }
+        }
+
+        function hideDatabaseStatus() {
+            dbStatusContainer.classList.add('hidden');
+            dbStatusIcon.classList.remove('loading-spinner');
+            dbStatusMessage.className = 'text-xs text-blue-600';
+        }
+
+        function updateDatabaseButton(state) {
+            if (state === 'saved') {
+                saveDbBtn.textContent = 'Saved ✓';
+                saveDbBtn.className = 'text-sm text-green-600 hover:text-green-700 font-medium';
+                saveDbBtn.disabled = true;
+            } else if (state === 'saving') {
+                saveDbBtn.textContent = 'Saving...';
+                saveDbBtn.disabled = true;
+            } else {
+                saveDbBtn.textContent = 'Save to DB';
+                saveDbBtn.className = 'text-sm text-primary hover:text-secondary font-medium';
+                saveDbBtn.disabled = false;
+            }
+        }
+
+        async function saveToDatabase() {
+            if (!extractedData) return;
+            
+            updateDatabaseButton('saving');
+            showDatabaseStatus('saving', 'Saving invoice to database...');
+            
+            try {
+                const response = await fetch('/api/save-invoice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(extractedData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showDatabaseStatus('success', `Invoice saved successfully! ID: ${result.invoice_id}`);
+                    updateDatabaseButton('saved');
+                    showToast(`Invoice saved to database! ID: ${result.invoice_id}`);
+                    
+                    setTimeout(() => hideDatabaseStatus(), 3000);
+                } else {
+                    const errorMsg = result.duplicate ? 
+                        'Invoice already exists in database' : 
+                        (result.error || 'Failed to save invoice');
+                    
+                    showDatabaseStatus('error', errorMsg);
+                    updateDatabaseButton('reset');
+                    showToast(errorMsg, 'error');
+                    
+                    setTimeout(() => hideDatabaseStatus(), 5000);
+                }
+            } catch (error) {
+                const errorMsg = 'Database connection error: ' + error.message;
+                showDatabaseStatus('error', errorMsg);
+                updateDatabaseButton('reset');
+                showToast(errorMsg, 'error');
+                
+                setTimeout(() => hideDatabaseStatus(), 5000);
+            }
         }
 
         async function copyToClipboard() {
@@ -505,7 +609,16 @@
                 
                 if (health.gemini_available) {
                     statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
-                    statusText.textContent = 'Ready';
+                    
+                    // Check database status
+                    if (health.database_connected) {
+                        statusText.textContent = 'Ready (DB Connected)';
+                    } else if (health.database_url_configured) {
+                        statusText.textContent = 'Ready (DB Error)';
+                        console.warn('Database configured but connection failed:', health.message);
+                    } else {
+                        statusText.textContent = 'Ready (No DB)';
+                    }
                 } else {
                     statusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
                     statusText.textContent = 'AI Model Unavailable';
