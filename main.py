@@ -11,11 +11,23 @@ from PIL import Image
 from io import BytesIO
 import json
 import base64
+import logging
 from langchain_openai import ChatOpenAI
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
 
+# Import database functionality
+try:
+    from database import save_invoice_to_db, health_check_db
+    DATABASE_AVAILABLE = True
+except ImportError as e:
+    print(f"Database not available: {e}")
+    DATABASE_AVAILABLE = False
+
 load_dotenv()
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
 # model = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -83,6 +95,13 @@ class ParseResponse(BaseModel):
     error: Optional[str] = None
     processing_time: Optional[float] = None
 
+class SaveResponse(BaseModel):
+    success: bool
+    message: str
+    invoice_id: Optional[str] = None
+    duplicate: Optional[bool] = False
+    error: Optional[str] = None
+
 # Remove the JSON schema from EXTRACTION_PROMPT and use a parser instead
 EXTRACTION_PROMPT = """
 You are an expert at extracting structured data from Indian GST-compliant invoices. 
@@ -128,12 +147,25 @@ async def home():
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
-    return {
+    health_data = {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "gemini_available": model is not None,
         "version": "1.0.0"
     }
+    
+    # Add database health check if available
+    if DATABASE_AVAILABLE:
+        db_health = health_check_db()
+        health_data.update(db_health)
+    else:
+        health_data.update({
+            "database_connected": False,
+            "database_url_configured": False,
+            "message": "Database module not available"
+        })
+    
+    return health_data
 
 @app.get("/api/supported-formats")
 async def supported_formats():
@@ -251,5 +283,57 @@ async def parse_invoice(file: UploadFile = File(...)):
     except Exception as e:
         return ParseResponse(
             success=False,
+            error=f"Unexpected error: {str(e)}"
+        )
+
+@app.post("/api/save-invoice", response_model=SaveResponse)
+async def save_invoice_to_database(invoice_data: InvoiceData):
+    """
+    Save extracted invoice data to PostgreSQL database.
+    
+    Args:
+        invoice_data: InvoiceData model with extracted invoice information
+        
+    Returns:
+        SaveResponse with success status and invoice ID or error details
+    """
+    if not DATABASE_AVAILABLE:
+        raise HTTPException(
+            status_code=503, 
+            detail="Database not available. Check DATABASE_URL configuration."
+        )
+    
+    try:
+        # Save invoice to database
+        result = save_invoice_to_db(invoice_data)
+        
+        if result["success"]:
+            return SaveResponse(
+                success=True,
+                message=result["message"],
+                invoice_id=result["invoice_id"],
+                duplicate=result.get("duplicate", False)
+            )
+        else:
+            # Handle specific error cases
+            if result.get("duplicate"):
+                return SaveResponse(
+                    success=False,
+                    message=result["message"],
+                    duplicate=True,
+                    error=result["error"]
+                )
+            else:
+                return SaveResponse(
+                    success=False,
+                    message=result["message"],
+                    error=result["error"]
+                )
+                
+    except Exception as e:
+        logger.error(f"Unexpected error in save_invoice_to_database: {e}")
+        return SaveResponse(
+            success=False,
+            message="Internal server error while saving invoice",
             error=f"Unexpected error: {str(e)}"
         )
