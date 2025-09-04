@@ -26,10 +26,10 @@ class CompanyModel(Base):
     __tablename__ = "companies"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    company_name = Column(String(255), nullable=False)
+    company_name = Column(String(500), nullable=False)  # Increased for long company names
     gstin = Column(String(15), nullable=True)  # GST Identification Number
-    phone = Column(String(20), nullable=True)
-    email = Column(String(255), nullable=True)
+    phone = Column(String(100), nullable=True)  # Increased for multiple phone numbers
+    email = Column(String(320), nullable=True)  # Standard email max length
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -99,9 +99,9 @@ class LineItemModel(Base):
     invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=False)
     serial_number = Column(Integer, nullable=True)
     description = Column(Text, nullable=False)
-    hsn_code = Column(String(20), nullable=True)  # Harmonized System of Nomenclature
+    hsn_code = Column(String(50), nullable=True)  # Harmonized System of Nomenclature - increased for longer codes
     quantity = Column(DECIMAL(10, 3), nullable=True)
-    unit = Column(String(20), nullable=True)
+    unit = Column(String(50), nullable=True)  # Increased for longer unit descriptions
     rate = Column(DECIMAL(15, 2), nullable=True)
     amount = Column(DECIMAL(15, 2), nullable=True)
     
