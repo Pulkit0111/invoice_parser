@@ -1,6 +1,8 @@
 """
-SQLAlchemy models for invoice data persistence.
-Maps to the existing Pydantic models for seamless data conversion.
+SQLAlchemy Database Models
+
+These models define the database schema and relationships
+for persistent storage of invoice data.
 """
 from sqlalchemy import Column, String, Text, DECIMAL, Integer, DateTime, ForeignKey, Enum, Index
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,17 +14,22 @@ import enum
 
 Base = declarative_base()
 
+
 class AddressType(enum.Enum):
+    """Enumeration for address types."""
     billing = "billing"
     shipping = "shipping"
 
+
 class ExtractionConfidence(enum.Enum):
+    """Enumeration for AI extraction confidence levels."""
     low = "low"
     medium = "medium"
     high = "high"
 
+
 class CompanyModel(Base):
-    """Companies table - stores both vendors and customers"""
+    """Companies table - stores both vendors and customers."""
     __tablename__ = "companies"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -41,8 +48,9 @@ class CompanyModel(Base):
     def __repr__(self):
         return f"<Company(id={self.id}, name='{self.company_name}', gstin='{self.gstin}')>"
 
+
 class AddressModel(Base):
-    """Addresses table - linked to companies"""
+    """Addresses table - linked to companies."""
     __tablename__ = "addresses"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -60,8 +68,9 @@ class AddressModel(Base):
     def __repr__(self):
         return f"<Address(id={self.id}, company_id={self.company_id}, type={self.address_type})>"
 
+
 class InvoiceModel(Base):
-    """Main invoices table"""
+    """Main invoices table."""
     __tablename__ = "invoices"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -91,8 +100,9 @@ class InvoiceModel(Base):
     def __repr__(self):
         return f"<Invoice(id={self.id}, number='{self.invoice_number}', amount={self.net_amount})>"
 
+
 class LineItemModel(Base):
-    """Invoice line items table"""
+    """Invoice line items table."""
     __tablename__ = "line_items"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -111,8 +121,9 @@ class LineItemModel(Base):
     def __repr__(self):
         return f"<LineItem(id={self.id}, invoice_id={self.invoice_id}, description='{self.description[:30]}...')>"
 
+
 class TaxCalculationModel(Base):
-    """Tax calculations table - one-to-one with invoices"""
+    """Tax calculations table - one-to-one with invoices."""
     __tablename__ = "tax_calculations"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -131,6 +142,7 @@ class TaxCalculationModel(Base):
     
     def __repr__(self):
         return f"<TaxCalculation(id={self.id}, invoice_id={self.invoice_id}, total_tax={self.total_tax})>"
+
 
 # Performance Indexes
 Index('idx_invoices_number', InvoiceModel.invoice_number)
