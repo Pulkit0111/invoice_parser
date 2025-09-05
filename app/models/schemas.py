@@ -4,7 +4,7 @@ Pydantic Models (API Schemas)
 These models define the structure for API request/response data
 and provide automatic validation and serialization.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
@@ -65,6 +65,10 @@ class InvoiceDataSchema(BaseModel):
     qr_code_data: Optional[str] = None
     extraction_confidence: Optional[str] = "medium"
     raw_text: Optional[str] = None
+    
+    # File references (for enhanced file management)
+    original_file_id: Optional[str] = None
+    original_filename: Optional[str] = None
 
 
 class ParseResponseSchema(BaseModel):
@@ -84,6 +88,50 @@ class SaveResponseSchema(BaseModel):
     error: Optional[str] = None
 
 
+# Authentication Schemas
+
+class UserCreateSchema(BaseModel):
+    """Schema for user registration."""
+    username: str
+    email: str  # Using str instead of EmailStr for simplicity
+    full_name: Optional[str] = None
+    password: str
+
+
+class UserSchema(BaseModel):
+    """Schema for user information (response)."""
+    id: str
+    username: str
+    email: str
+    full_name: Optional[str] = None
+    is_active: bool
+    created_at: str
+
+
+class UserLoginSchema(BaseModel):
+    """Schema for user login."""
+    username: str
+    password: str
+
+
+class TokenSchema(BaseModel):
+    """Schema for authentication token response."""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserSchema
+
+
+class UserInDBSchema(BaseModel):
+    """Schema for user data from database."""
+    id: str
+    username: str
+    email: str
+    full_name: Optional[str] = None
+    hashed_password: str
+    is_active: bool
+    created_at: str
+
+
 # Export schemas for easy importing
 __all__ = [
     "LineItemSchema",
@@ -93,6 +141,12 @@ __all__ = [
     "InvoiceDataSchema",
     "ParseResponseSchema",
     "SaveResponseSchema",
+    # Authentication schemas
+    "UserCreateSchema",
+    "UserSchema",
+    "UserLoginSchema",
+    "TokenSchema",
+    "UserInDBSchema",
     # Backward compatibility aliases
     "LineItem",
     "Address",

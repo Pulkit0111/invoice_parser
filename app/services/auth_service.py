@@ -1,0 +1,293 @@
+"""
+Authentication Service
+
+Handles user authentication, registration, and session management.
+"""
+import logging
+from typing import Optional
+from datetime import datetime, timedelta
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db_session
+from app.core.security import hash_password, verify_password, create_access_token, verify_token
+from app.models.database import UserModel
+from app.models.schemas import (
+    UserCreateSchema, UserSchema, UserLoginSchema, 
+    TokenSchema, UserInDBSchema
+)
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+class AuthService:
+    """Service for user authentication and management."""
+    
+    def create_user(self, user_data: UserCreateSchema) -> UserSchema:
+        """
+        Create a new user account.
+        
+        Args:
+            user_data: User registration data
+            
+        Returns:
+            Created user information
+            
+        Raises:
+            ValueError: If username or email already exists
+        """
+        try:
+            with get_db_session() as session:
+                # Check if username or email already exists
+                existing_user = session.query(UserModel).filter(
+                    (UserModel.username == user_data.username) | 
+                    (UserModel.email == user_data.email)
+                ).first()
+                
+                if existing_user:
+                    if existing_user.username == user_data.username:
+                        raise ValueError("Username already exists")
+                    else:
+                        raise ValueError("Email already exists")
+                
+                # Create new user
+                hashed_password = hash_password(user_data.password)
+                
+                new_user = UserModel(
+                    username=user_data.username,
+                    email=user_data.email,
+                    full_name=user_data.full_name,
+                    hashed_password=hashed_password,
+                    is_active=True
+                )
+                
+                session.add(new_user)
+                session.flush()  # Get the ID
+                
+                # Access attributes while in session context
+                user_id = str(new_user.id)
+                username = new_user.username
+                email = new_user.email
+                full_name = new_user.full_name
+                is_active = new_user.is_active
+                created_at = new_user.created_at.isoformat()
+                
+                logger.info(f"Created new user: {user_data.username}")
+                
+                return UserSchema(
+                    id=user_id,
+                    username=username,
+                    email=email,
+                    full_name=full_name,
+                    is_active=is_active,
+                    created_at=created_at
+                )
+                
+        except IntegrityError as e:
+            logger.error(f"Database integrity error creating user: {e}")
+            raise ValueError("Username or email already exists")
+        except Exception as e:
+            logger.error(f"Error creating user: {e}")
+            raise
+    
+    def authenticate_user(self, username: str, password: str) -> Optional[UserModel]:
+        """
+        Authenticate a user with username and password.
+        
+        Args:
+            username: Username or email
+            password: Plain text password
+            
+        Returns:
+            User model if authentication successful, None otherwise
+        """
+        try:
+            with get_db_session() as session:
+                # Find user by username or email
+                user = session.query(UserModel).filter(
+                    (UserModel.username == username) | (UserModel.email == username)
+                ).first()
+                
+                if not user:
+                    logger.warning(f"Authentication failed: user not found - {username}")
+                    return None
+                
+                if not user.is_active:
+                    logger.warning(f"Authentication failed: user inactive - {username}")
+                    return None
+                
+                if not verify_password(password, user.hashed_password):
+                    logger.warning(f"Authentication failed: invalid password - {username}")
+                    return None
+                
+                logger.info(f"User authenticated successfully: {username}")
+                return user
+                
+        except Exception as e:
+            logger.error(f"Error authenticating user {username}: {e}")
+            return None
+    
+    def login_user(self, login_data: UserLoginSchema) -> TokenSchema:
+        """
+        Login user and return access token.
+        
+        Args:
+            login_data: Login credentials
+            
+        Returns:
+            Token with user information
+            
+        Raises:
+            ValueError: If authentication fails
+        """
+        # Authenticate and get user data within session context
+        with get_db_session() as session:
+            # Find user by username or email
+            user = session.query(UserModel).filter(
+                (UserModel.username == login_data.username) | (UserModel.email == login_data.username)
+            ).first()
+            
+            if not user:
+                raise ValueError("Invalid username or password")
+            
+            if not user.is_active:
+                raise ValueError("Invalid username or password")
+            
+            if not verify_password(login_data.password, user.hashed_password):
+                raise ValueError("Invalid username or password")
+            
+            # Access user attributes while in session context
+            user_id = str(user.id)
+            username = user.username
+            email = user.email
+            full_name = user.full_name
+            is_active = user.is_active
+            created_at = user.created_at.isoformat()
+            
+        
+        # Create access token
+        access_token = create_access_token(
+            data={"sub": user_id, "username": username}
+        )
+        
+        user_schema = UserSchema(
+            id=user_id,
+            username=username,
+            email=email,
+            full_name=full_name,
+            is_active=is_active,
+            created_at=created_at
+        )
+        
+        return TokenSchema(
+            access_token=access_token,
+            token_type="bearer",
+            user=user_schema
+        )
+    
+    def get_current_user(self, token: str) -> Optional[UserModel]:
+        """
+        Get current user from JWT token.
+        
+        Args:
+            token: JWT access token
+            
+        Returns:
+            User model if token is valid, None otherwise
+        """
+        try:
+            payload = verify_token(token)
+            if not payload:
+                return None
+            
+            user_id: str = payload.get("sub")
+            if not user_id:
+                return None
+            
+            with get_db_session() as session:
+                user = session.query(UserModel).filter(UserModel.id == user_id).first()
+                
+                if not user or not user.is_active:
+                    return None
+                
+                # Ensure the user object is detached from session but still accessible
+                session.expunge(user)
+                return user
+                
+        except Exception as e:
+            logger.error(f"Error getting current user from token: {e}")
+            return None
+    
+    def get_user_by_id(self, user_id: str) -> Optional[UserSchema]:
+        """
+        Get user information by ID.
+        
+        Args:
+            user_id: User UUID
+            
+        Returns:
+            User schema if found, None otherwise
+        """
+        try:
+            with get_db_session() as session:
+                user = session.query(UserModel).filter(UserModel.id == user_id).first()
+                
+                if not user:
+                    return None
+                
+                return UserSchema(
+                    id=str(user.id),
+                    username=user.username,
+                    email=user.email,
+                    full_name=user.full_name,
+                    is_active=user.is_active,
+                    created_at=user.created_at.isoformat()
+                )
+                
+        except Exception as e:
+            logger.error(f"Error getting user by ID {user_id}: {e}")
+            return None
+    
+    def get_user_stats(self, user_id: str) -> dict:
+        """
+        Get user statistics.
+        
+        Args:
+            user_id: User UUID
+            
+        Returns:
+            Dictionary with user statistics
+        """
+        try:
+            with get_db_session() as session:
+                from app.models.database import InvoiceModel
+                
+                # Get invoice count for user
+                invoice_count = session.query(InvoiceModel).filter(
+                    InvoiceModel.user_id == user_id
+                ).count()
+                
+                # Get recent activity (last 30 days)
+                thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+                recent_count = session.query(InvoiceModel).filter(
+                    InvoiceModel.user_id == user_id,
+                    InvoiceModel.created_at >= thirty_days_ago
+                ).count()
+                
+                return {
+                    "total_invoices": invoice_count,
+                    "recent_invoices": recent_count,
+                    "success_rate": 100.0,  # Placeholder - could calculate from processing results
+                    "account_created": True
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting user stats for {user_id}: {e}")
+            return {
+                "total_invoices": 0,
+                "recent_invoices": 0,
+                "success_rate": 0.0,
+                "account_created": False
+            }

@@ -85,7 +85,7 @@ class InvoiceService:
                 error=f"Processing error: {str(e)}"
             )
     
-    def save_invoice(self, invoice_data: InvoiceDataSchema) -> SaveResponseSchema:
+    def save_invoice(self, invoice_data: InvoiceDataSchema, user_id: str) -> SaveResponseSchema:
         """
         Save extracted invoice data to database.
         
@@ -99,7 +99,7 @@ class InvoiceService:
             logger.info(f"Saving invoice to database: {invoice_data.invoice_number}")
             
             # Use database service to save
-            result = self.db_service.save_invoice_to_db(invoice_data)
+            result = self.db_service.save_invoice_to_db(invoice_data, user_id)
             
             # Convert to schema response
             return SaveResponseSchema(
@@ -123,7 +123,8 @@ class InvoiceService:
         file_data: bytes, 
         content_type: str, 
         filename: str = "invoice",
-        auto_save: bool = False
+        auto_save: bool = False,
+        user_id: str = None
     ) -> Tuple[ParseResponseSchema, SaveResponseSchema]:
         """
         Complete invoice processing pipeline: extract and optionally save.
@@ -141,9 +142,9 @@ class InvoiceService:
         parse_response = await self.process_invoice(file_data, content_type, filename)
         
         save_response = None
-        if auto_save and parse_response.success and parse_response.data:
+        if auto_save and parse_response.success and parse_response.data and user_id:
             # Auto-save if requested and processing succeeded
-            save_response = self.save_invoice(parse_response.data)
+            save_response = self.save_invoice(parse_response.data, user_id)
         
         return parse_response, save_response
     

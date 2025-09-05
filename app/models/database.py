@@ -4,7 +4,7 @@ SQLAlchemy Database Models
 These models define the database schema and relationships
 for persistent storage of invoice data.
 """
-from sqlalchemy import Column, String, Text, DECIMAL, Integer, DateTime, ForeignKey, Enum, Index
+from sqlalchemy import Column, String, Text, DECIMAL, Integer, DateTime, ForeignKey, Enum, Index, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,6 +13,26 @@ import uuid
 import enum
 
 Base = declarative_base()
+
+
+class UserModel(Base):
+    """Users table - stores user authentication and profile information."""
+    __tablename__ = "users"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String(100), unique=True, nullable=False)
+    email = Column(String(320), unique=True, nullable=False)
+    full_name = Column(String(200), nullable=True)
+    hashed_password = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    invoices = relationship("InvoiceModel", back_populates="user", cascade="all, delete-orphan")
+    
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
 
 
 class AddressType(enum.Enum):
@@ -84,16 +104,23 @@ class InvoiceModel(Base):
     qr_code_data = Column(Text, nullable=True)
     extraction_confidence = Column(Enum(ExtractionConfidence), default=ExtractionConfidence.medium)
     raw_text = Column(Text, nullable=True)
+    
+    # File references
+    original_file_id = Column(String(255), nullable=True)  # Reference to uploaded file
+    original_filename = Column(String(255), nullable=True)  # Original filename
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Foreign Keys
     vendor_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=True)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     
     # Relationships
     vendor = relationship("CompanyModel", foreign_keys=[vendor_id], back_populates="vendor_invoices")
     customer = relationship("CompanyModel", foreign_keys=[customer_id], back_populates="customer_invoices")
+    user = relationship("UserModel", back_populates="invoices")
     line_items = relationship("LineItemModel", back_populates="invoice", cascade="all, delete-orphan")
     tax_calculation = relationship("TaxCalculationModel", back_populates="invoice", uselist=False, cascade="all, delete-orphan")
     
@@ -147,6 +174,9 @@ class TaxCalculationModel(Base):
 # Performance Indexes
 Index('idx_invoices_number', InvoiceModel.invoice_number)
 Index('idx_invoices_date', InvoiceModel.invoice_date)
+Index('idx_invoices_user', InvoiceModel.user_id)
 Index('idx_companies_gstin', CompanyModel.gstin)
 Index('idx_line_items_invoice', LineItemModel.invoice_id)
 Index('idx_addresses_company', AddressModel.company_id)
+Index('idx_users_username', UserModel.username)
+Index('idx_users_email', UserModel.email)

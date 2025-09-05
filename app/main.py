@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
-from app.api.routes import health, invoices, files
+from app.api.routes import health, invoices, auth, dashboard, user, files, static_files
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,8 +53,12 @@ def create_app() -> FastAPI:
     
     # Include routers
     app.include_router(health.router, prefix="/api")
+    app.include_router(auth.router, prefix="/api")
+    app.include_router(user.router, prefix="/api")
+    app.include_router(files.router, prefix="/api")
+    app.include_router(dashboard.router, prefix="/api")
     app.include_router(invoices.router, prefix="/api")
-    app.include_router(files.router)
+    app.include_router(static_files.router)  # Homepage and static routes
     
     # Mount static files
     app.mount("/static", StaticFiles(directory="static"), name="static")

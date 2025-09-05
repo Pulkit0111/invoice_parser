@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     AI_MODEL_NAME: str = "gemini-2.0-flash"
     AI_TEMPERATURE: float = 0.0
     
+    # Authentication Configuration
+    JWT_SECRET_KEY: str = "your-super-secret-jwt-key-change-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
     # File Upload Configuration
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_FILE_TYPES: list[str] = ["image/jpeg", "image/jpg", "image/png", "image/webp"]

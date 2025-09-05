@@ -87,7 +87,7 @@ class DatabaseService:
             logger.error(f"Error creating/getting company: {e}")
             raise
     
-    def save_invoice_to_db(self, invoice_data: InvoiceDataSchema) -> dict[str, Any]:
+    def save_invoice_to_db(self, invoice_data: InvoiceDataSchema, user_id: str) -> dict[str, Any]:
         """
         Save complete invoice data to database.
         
@@ -128,7 +128,8 @@ class DatabaseService:
                     extraction_confidence=invoice_data.extraction_confidence or "medium",
                     raw_text=invoice_data.raw_text,
                     vendor_id=vendor.id if vendor else None,
-                    customer_id=customer.id if customer else None
+                    customer_id=customer.id if customer else None,
+                    user_id=user_id
                 )
                 session.add(invoice)
                 session.flush()  # Get invoice ID
@@ -232,5 +233,85 @@ class DatabaseService:
                 "total_invoices": 0,
                 "total_companies": 0,
                 "status": "error",
+                "error": str(e)
+            }
+    
+    def get_user_invoices(self, user_id: str, page: int = 1, limit: int = 10) -> dict[str, Any]:
+        """Get invoices for a specific user with pagination."""
+        try:
+            with get_db_session() as session:
+                # Calculate offset
+                offset = (page - 1) * limit
+                
+                # Get total count
+                total = session.query(InvoiceModel).filter(
+                    InvoiceModel.user_id == user_id
+                ).count()
+                
+                # Get paginated invoices
+                invoices = session.query(InvoiceModel).filter(
+                    InvoiceModel.user_id == user_id
+                ).order_by(InvoiceModel.created_at.desc()).offset(offset).limit(limit).all()
+                
+                # Convert to dict format
+                invoice_list = []
+                for invoice in invoices:
+                    invoice_list.append({
+                        "id": str(invoice.id),
+                        "invoice_number": invoice.invoice_number,
+                        "invoice_date": invoice.invoice_date,
+                        "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
+                        "currency": invoice.currency,
+                        "extraction_confidence": invoice.extraction_confidence,
+                        "created_at": invoice.created_at.isoformat()
+                    })
+                
+                return {
+                    "invoices": invoice_list,
+                    "pagination": {
+                        "page": page,
+                        "limit": limit,
+                        "total": total,
+                        "pages": (total + limit - 1) // limit
+                    }
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting user invoices for {user_id}: {e}")
+            return {
+                "invoices": [],
+                "pagination": {"page": page, "limit": limit, "total": 0, "pages": 0}
+            }
+    
+    def delete_user_invoice(self, user_id: str, invoice_id: str) -> dict[str, Any]:
+        """Delete a specific invoice for a user."""
+        try:
+            with get_db_session() as session:
+                invoice = session.query(InvoiceModel).filter(
+                    InvoiceModel.id == invoice_id,
+                    InvoiceModel.user_id == user_id
+                ).first()
+                
+                if not invoice:
+                    return {
+                        "success": False,
+                        "message": "Invoice not found or access denied"
+                    }
+                
+                session.delete(invoice)
+                session.commit()
+                
+                logger.info(f"Deleted invoice {invoice_id} for user {user_id}")
+                
+                return {
+                    "success": True,
+                    "message": "Invoice deleted successfully"
+                }
+                
+        except Exception as e:
+            logger.error(f"Error deleting invoice {invoice_id} for user {user_id}: {e}")
+            return {
+                "success": False,
+                "message": "Failed to delete invoice",
                 "error": str(e)
             }

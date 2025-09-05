@@ -10,7 +10,9 @@ from app.core.config import get_settings
 from app.models.schemas import (
     InvoiceDataSchema, ParseResponseSchema, SaveResponseSchema
 )
+from app.models.database import UserModel
 from app.api.dependencies import get_invoice_service
+from app.api.routes.auth import get_current_user
 from app.services.invoice_service import InvoiceService
 
 router = APIRouter(tags=["invoices"])
@@ -54,6 +56,7 @@ async def get_supported_formats():
 @router.post("/parse-invoice", response_model=ParseResponseSchema)
 async def parse_invoice(
     file: UploadFile = File(...),
+    current_user: UserModel = Depends(get_current_user),
     invoice_service: InvoiceService = Depends(get_invoice_service)
 ):
     """
@@ -95,6 +98,7 @@ async def parse_invoice(
 @router.post("/save-invoice", response_model=SaveResponseSchema)
 async def save_invoice_to_database(
     invoice_data: InvoiceDataSchema,
+    current_user: UserModel = Depends(get_current_user),
     invoice_service: InvoiceService = Depends(get_invoice_service)
 ):
     """
@@ -108,7 +112,7 @@ async def save_invoice_to_database(
     """
     try:
         # Save using invoice service
-        result = invoice_service.save_invoice(invoice_data)
+        result = invoice_service.save_invoice(invoice_data, str(current_user.id))
         
         # Handle specific error cases
         if not result.success and result.duplicate:
@@ -137,6 +141,7 @@ async def save_invoice_to_database(
 async def process_and_save_invoice(
     file: UploadFile = File(...),
     auto_save: bool = True,
+    current_user: UserModel = Depends(get_current_user),
     invoice_service: InvoiceService = Depends(get_invoice_service)
 ):
     """
@@ -160,7 +165,7 @@ async def process_and_save_invoice(
         
         # Process and optionally save
         parse_result, save_result = await invoice_service.process_and_save_invoice(
-            file_data, content_type, filename, auto_save
+            file_data, content_type, filename, auto_save, str(current_user.id)
         )
         
         return {

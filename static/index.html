@@ -3,221 +3,426 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Image Parser - AI-Powered OCR</title>
+    <title>Invoice Parser - AI-Powered OCR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#1E40AF',
-                        accent: '#10B981',
-                        danger: '#EF4444'
+                        'bg-primary': '#0F172A',
+                        'bg-secondary': '#1E293B', 
+                        'bg-tertiary': '#334155',
+                        'accent-primary': '#8B5CF6',
+                        'accent-hover': '#7C3AED',
+                        'accent-light': '#A78BFA',
+                        'text-primary': '#F1F5F9',
+                        'text-secondary': '#CBD5E1',
+                        'text-muted': '#64748B'
                     }
                 }
             }
         }
     </script>
     <style>
-        .upload-area {
-            border: 2px dashed #D1D5DB;
-            transition: all 0.3s ease;
-        }
-        .upload-area.dragover {
-            border-color: #3B82F6;
-            background-color: #F3F4F6;
-        }
-        .json-viewer {
-            background: #F9FAFB;
-            border: 1px solid #E5E7EB;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        .loading-spinner {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .preview-image {
-            max-width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-        }
+        body { background-color: #0F172A; color: #F1F5F9; }
+        .modal { backdrop-filter: blur(8px); transition: all 0.3s ease; }
+        .modal.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .modal:not(.hidden) { opacity: 1; pointer-events: all; transform: scale(1); }
+        .app-view { transition: all 0.3s ease; }
+        .app-view.hidden { display: none; }
+        .upload-area { border: 2px dashed #475569; transition: all 0.3s ease; background: #1E293B; }
+        .upload-area.dragover { border-color: #8B5CF6; background: #334155; transform: scale(1.02); }
+        .btn-primary { background: linear-gradient(135deg, #8B5CF6, #7C3AED); transition: all 0.2s ease; }
+        .btn-primary:hover { background: linear-gradient(135deg, #7C3AED, #6D28D9); transform: translateY(-1px); }
+        .btn-secondary { background: #334155; border: 1px solid #475569; transition: all 0.2s ease; }
+        .btn-secondary:hover { background: #475569; border-color: #64748B; }
+        .form-input { background: #1E293B; border: 1px solid #475569; color: #F1F5F9; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); outline: none; }
+        .card { background: #1E293B; border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
+        .loading-spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-bg-primary text-text-primary min-h-screen">
+    
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
+    <header class="bg-bg-secondary border-b border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
-                <div class="flex items-center">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 class="text-xl font-bold text-gray-900">Invoice Parser</h1>
-                            <p class="text-sm text-gray-500">AI-Powered OCR with Google Gemini</p>
-                        </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-hover rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-text-primary">Invoice Parser</h1>
+                        <p class="text-sm text-text-muted">AI-Powered OCR Processing</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <div id="status-indicator" class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span id="status-text" class="text-sm text-gray-600">Ready</span>
+                
+                <!-- User Menu (hidden initially) -->
+                <div id="user-menu" class="hidden flex items-center space-x-4">
+                    <div id="nav-tabs" class="flex items-center space-x-2">
+                        <button id="nav-processing" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-accent-primary text-white">
+                            Process
+                        </button>
+                        <button id="nav-dashboard" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors text-text-secondary hover:text-text-primary hover:bg-bg-tertiary">
+                            Dashboard
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span id="user-greeting" class="text-sm text-text-secondary">Welcome!</span>
+                        <button id="logout-btn" class="px-3 py-1 text-sm text-text-muted hover:text-text-primary rounded-lg transition-colors">
+                            Logout
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Left Panel - Upload -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-lg shadow-sm border p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900">Upload Invoice</h2>
-                        <button id="clear-btn" class="text-sm text-gray-500 hover:text-gray-700 hidden">Clear</button>
+    <!-- Main Application Container -->
+    <div id="app-container" class="min-h-screen">
+        
+        <!-- Landing/Registration View (Default) -->
+        <div id="landing-view" class="app-view">
+            <div class="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-gradient-to-br from-accent-primary to-accent-hover rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl font-bold text-text-primary">Get Started</h2>
+                        <p class="mt-2 text-text-secondary">Create your account to start processing invoices</p>
                     </div>
                     
-                    <!-- Upload Area -->
-                    <div id="upload-area" class="upload-area rounded-lg p-8 text-center cursor-pointer">
-                        <div id="upload-content">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            <div class="mt-4">
-                                <label for="file-upload" class="cursor-pointer">
-                                    <span class="mt-2 block text-sm font-medium text-gray-900">
-                                        Drop invoice image here or 
-                                        <span class="text-primary underline">browse</span>
-                                    </span>
-                                </label>
-                                <input id="file-upload" name="file-upload" type="file" accept="image/*,.pdf" class="sr-only">
+                    <!-- Registration Form -->
+                    <form id="landing-register-form" class="mt-8 space-y-6" onsubmit="handleLandingRegister(event)">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="reg-username" class="block text-sm font-medium text-text-secondary mb-2">Username</label>
+                                <input id="reg-username" name="username" type="text" required
+                                    class="form-input w-full px-3 py-3 rounded-lg"
+                                    placeholder="Enter your username">
                             </div>
-                            <p class="mt-2 text-xs text-gray-500">
-                                Supports: JPG, PNG, WEBP (Max: 10MB)<br>
-                            </p>
+                            
+                            <div>
+                                <label for="reg-email" class="block text-sm font-medium text-text-secondary mb-2">Email</label>
+                                <input id="reg-email" name="email" type="email" required
+                                    class="form-input w-full px-3 py-3 rounded-lg"
+                                    placeholder="Enter your email">
+                            </div>
+                            
+                            <div>
+                                <label for="reg-fullname" class="block text-sm font-medium text-text-secondary mb-2">Full Name (Optional)</label>
+                                <input id="reg-fullname" name="full_name" type="text"
+                                    class="form-input w-full px-3 py-3 rounded-lg"
+                                    placeholder="Enter your full name">
+                            </div>
+                            
+                            <div>
+                                <label for="reg-password" class="block text-sm font-medium text-text-secondary mb-2">Password</label>
+                                <input id="reg-password" name="password" type="password" required minlength="6"
+                                    class="form-input w-full px-3 py-3 rounded-lg"
+                                    placeholder="Create a password (min 6 characters)">
+                            </div>
                         </div>
                         
-                        <!-- Image Preview -->
-                        <div id="preview-container" class="hidden">
-                            <img id="preview-image" class="preview-image mx-auto rounded-lg shadow-sm mb-4" alt="Invoice preview">
-                            <div class="flex items-center justify-center space-x-4">
-                                <span id="file-name" class="text-sm text-gray-600"></span>
-                                <span id="file-size" class="text-xs text-gray-400"></span>
-                            </div>
+                        <div id="landing-error" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                            <p class="text-sm text-red-400" id="landing-error-message"></p>
+                        </div>
+                        
+                        <button type="submit" id="landing-submit" 
+                            class="btn-primary w-full py-3 px-4 rounded-lg font-medium text-white">
+                            Create Account & Start Processing
+                        </button>
+                        
+                        <div class="text-center">
+                            <p class="text-sm text-text-secondary">
+                                Already have an account? 
+                                <button type="button" onclick="showLoginModal()" 
+                                    class="text-accent-primary hover:text-accent-light font-medium transition-colors">
+                                    Login here
+                                </button>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Processing View -->
+        <div id="processing-view" class="app-view hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div id="new-user-welcome" class="hidden mb-8 p-4 bg-accent-primary/10 border border-accent-primary/20 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-accent-primary/20 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-accent-primary">Welcome to Invoice Parser!</h3>
+                            <p class="text-sm text-text-secondary mt-1">Drag and drop your invoice image below to get started with AI-powered data extraction.</p>
                         </div>
                     </div>
-                    
-                    <!-- Process Button -->
-                    <div class="mt-6">
-                        <button id="process-btn" class="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <span id="process-text">Select an invoice to process</span>
-                            <svg id="process-spinner" class="loading-spinner w-5 h-5 inline ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
+                </div>
+                
+                <div class="card rounded-lg p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-text-primary">Upload Invoice</h2>
+                        <button id="clear-btn" class="hidden text-sm text-text-muted hover:text-text-primary transition-colors">
+                            Clear
                         </button>
                     </div>
                     
-                    <!-- Processing Info -->
-                    <div id="processing-info" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden">
-                        <div class="flex items-center">
-                            <svg class="loading-spinner w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    <div id="upload-area" class="upload-area rounded-lg p-8 text-center cursor-pointer">
+                        <div id="upload-content">
+                            <svg class="mx-auto h-12 w-12 text-text-muted mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                             <div>
-                                <p class="text-sm font-medium text-blue-800">Processing with Gemini AI</p>
-                                <p class="text-xs text-blue-600">Extracting structured data from your invoice...</p>
+                                <label for="file-upload" class="cursor-pointer">
+                                    <span class="mt-2 block text-sm font-medium text-text-primary">
+                                        Drop invoice image here or 
+                                        <span class="text-accent-primary">browse files</span>
+                                    </span>
+                                </label>
+                                <input id="file-upload" type="file" class="hidden" accept="image/*">
+                                <p class="mt-1 text-xs text-text-muted">PNG, JPG, WEBP up to 10MB</p>
+                            </div>
+                        </div>
+                        
+                        <div id="preview-container" class="hidden mt-4">
+                            <img id="preview-image" class="preview-image mx-auto rounded-lg" alt="Preview" style="max-height: 200px;">
+                            <div class="mt-3 text-center">
+                                <p id="file-name" class="text-sm font-medium text-text-primary"></p>
+                                <p id="file-size" class="text-xs text-text-muted"></p>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Error Display -->
-                    <div id="error-container" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg hidden">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mt-6 text-center">
+                        <button id="process-btn" disabled
+                            class="btn-primary px-8 py-3 rounded-lg font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="process-text">Select an image to process</span>
+                            <div id="process-spinner" class="hidden inline-block ml-2 w-4 h-4 loading-spinner border-2 border-white border-t-transparent rounded-full"></div>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="results-section" class="hidden">
+                    <div id="processing-info" class="card rounded-lg p-6 mb-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-text-primary">Processing Results</h3>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-text-secondary">Processed successfully</span>
+                                </div>
+                                <div class="text-sm text-text-muted">
+                                    <span id="processing-time"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex flex-wrap gap-3">
+                            <button id="copy-json-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">
+                                Copy JSON
+                            </button>
+                            <button id="download-json-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">
+                                Download
+                            </button>
+                            <button id="save-db-btn" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white">
+                                Save to Database
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-text-primary mb-4">Extracted Data</h3>
+                        <div id="json-container" class="bg-bg-primary border border-gray-600 rounded-lg p-4 max-h-96 overflow-y-auto">
+                            <pre id="json-output" class="text-sm text-text-primary font-mono whitespace-pre-wrap"></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="error-container" class="hidden card rounded-lg p-6 bg-red-500/10 border border-red-500/20">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <div>
-                                <p class="text-sm font-medium text-red-800">Processing Error</p>
-                                <p id="error-message" class="text-xs text-red-600"></p>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-red-400">Processing Error</h3>
+                            <p id="error-message" class="text-sm text-text-secondary mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="app-view hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-text-primary">Dashboard</h1>
+                        <p class="text-text-secondary mt-1">Manage your processed invoices</p>
+                    </div>
+                    <button id="process-new-btn" class="btn-primary px-6 py-3 rounded-lg font-medium text-white">
+                        Process New Invoice
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card rounded-lg p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-accent-primary/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-2xl font-bold text-text-primary" id="total-invoices">0</div>
+                                <div class="text-sm text-text-muted">Total Invoices</div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Database Status Display -->
-                    <div id="db-status-container" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                    <div class="card rounded-lg p-6">
                         <div class="flex items-center">
-                            <svg id="db-status-icon" class="loading-spinner w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-blue-800">Database Status</p>
-                                <p id="db-status-message" class="text-xs text-blue-600">Saving to database...</p>
+                            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-2xl font-bold text-text-primary" id="recent-invoices">0</div>
+                                <div class="text-sm text-text-muted">Recent (30 days)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card rounded-lg p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-2xl font-bold text-text-primary" id="success-rate">100%</div>
+                                <div class="text-sm text-text-muted">Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card rounded-lg p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-2xl font-bold text-text-primary" id="storage-used">0 MB</div>
+                                <div class="text-sm text-text-muted">Storage Used</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Processing Stats -->
-                <div id="stats-container" class="bg-white rounded-lg shadow-sm border p-6 hidden">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Processing Results</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="text-center">
-                            <div id="confidence-score" class="text-2xl font-bold text-accent">-</div>
-                            <div class="text-sm text-gray-500">Confidence</div>
-                        </div>
-                        <div class="text-center">
-                            <div id="processing-time" class="text-2xl font-bold text-primary">-</div>
-                            <div class="text-sm text-gray-500">Time (seconds)</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Right Panel - Results -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-lg shadow-sm border">
-                    <div class="p-6 border-b">
+                <div class="card rounded-lg">
+                    <div class="p-6 border-b border-gray-700">
                         <div class="flex items-center justify-between">
-                            <h2 class="text-lg font-semibold text-gray-900">Extracted Data</h2>
-                            <div class="flex space-x-2">
-                                <button id="copy-json-btn" class="text-sm text-gray-500 hover:text-gray-700 hidden">Copy JSON</button>
-                                <button id="download-json-btn" class="text-sm text-gray-500 hover:text-gray-700 hidden">Download</button>
-                                <button id="save-db-btn" class="text-sm text-primary hover:text-secondary font-medium hidden">Save to DB</button>
-                            </div>
+                            <h2 class="text-lg font-semibold text-text-primary">Invoice History</h2>
+                            <button id="refresh-invoices" class="text-text-muted hover:text-text-primary transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                     
-                    <!-- Results Display -->
-                    <div class="p-6">
-                        <div id="no-results" class="text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No data extracted yet</h3>
-                            <p class="mt-1 text-sm text-gray-500">Upload and process an invoice to see the results here</p>
+                    <div id="invoice-history" class="divide-y divide-gray-700">
+                        <div id="invoice-loading" class="p-8 text-center">
+                            <div class="loading-spinner w-6 h-6 border-2 border-accent-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                            <p class="text-text-muted">Loading invoices...</p>
                         </div>
                         
-                        <!-- JSON Viewer -->
-                        <div id="json-container" class="hidden">
-                            <pre id="json-output" class="json-viewer p-4 rounded-lg text-sm overflow-x-auto font-mono"></pre>
+                        <div id="no-invoices" class="hidden p-8 text-center">
+                            <svg class="w-12 h-12 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-text-muted mb-4">No invoices processed yet</p>
+                            <button onclick="switchToProcessing()" class="btn-primary px-4 py-2 rounded-lg font-medium text-white">
+                                Process Your First Invoice
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
+    
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="card rounded-lg max-w-md w-full mx-4 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-text-primary">Welcome Back</h3>
+                <button onclick="hideLoginModal()" class="text-text-muted hover:text-text-primary transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label for="login-username" class="block text-sm font-medium text-text-secondary mb-2">Username or Email</label>
+                    <input type="text" id="login-username" name="username" required
+                        class="form-input w-full px-3 py-2 rounded-lg">
+                </div>
+                
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-text-secondary mb-2">Password</label>
+                    <input type="password" id="login-password" name="password" required
+                        class="form-input w-full px-3 py-2 rounded-lg">
+                </div>
+                
+                <div id="login-error" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p class="text-sm text-red-400" id="login-error-message"></p>
+                </div>
+                
+                <div class="flex space-x-3 pt-2">
+                    <button type="submit" id="login-submit" 
+                        class="btn-primary flex-1 py-2 px-4 rounded-lg font-medium text-white">
+                        Login
+                    </button>
+                    <button type="button" onclick="hideLoginModal()" 
+                        class="btn-secondary flex-1 py-2 px-4 rounded-lg font-medium">
+                        Cancel
+                    </button>
+                </div>
+                
+                <div class="text-center pt-2">
+                    <p class="text-sm text-text-secondary">
+                        Don't have an account? 
+                        <button type="button" onclick="switchToRegister()" class="text-accent-primary hover:text-accent-light font-medium">
+                            Register here
+                        </button>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- Success Toast -->
     <div id="success-toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50">
         <div class="flex items-center">
@@ -228,335 +433,531 @@
         </div>
     </div>
 
+
     <script>
-        // Application state
+        // ===== APPLICATION STATE =====
+        let currentUser = null;
+        let authToken = null;
+        let currentView = 'landing';
         let currentFile = null;
         let extractedData = null;
-
-        // DOM elements
-        const uploadArea = document.getElementById('upload-area');
-        const fileInput = document.getElementById('file-upload');
-        const previewContainer = document.getElementById('preview-container');
-        const previewImage = document.getElementById('preview-image');
-        const fileName = document.getElementById('file-name');
-        const fileSize = document.getElementById('file-size');
-        const uploadContent = document.getElementById('upload-content');
-        const processBtn = document.getElementById('process-btn');
-        const processText = document.getElementById('process-text');
-        const processSpinner = document.getElementById('process-spinner');
-        const processingInfo = document.getElementById('processing-info');
-        const errorContainer = document.getElementById('error-container');
-        const errorMessage = document.getElementById('error-message');
-        const clearBtn = document.getElementById('clear-btn');
-        const jsonContainer = document.getElementById('json-container');
-        const jsonOutput = document.getElementById('json-output');
-        const noResults = document.getElementById('no-results');
-        const statsContainer = document.getElementById('stats-container');
-        const confidenceScore = document.getElementById('confidence-score');
-        const processingTime = document.getElementById('processing-time');
-        const copyJsonBtn = document.getElementById('copy-json-btn');
-        const downloadJsonBtn = document.getElementById('download-json-btn');
-        const saveDbBtn = document.getElementById('save-db-btn');
-        const dbStatusContainer = document.getElementById('db-status-container');
-        const dbStatusMessage = document.getElementById('db-status-message');
-        const dbStatusIcon = document.getElementById('db-status-icon');
-        const successToast = document.getElementById('success-toast');
-        const toastMessage = document.getElementById('toast-message');
-        const statusIndicator = document.getElementById('status-indicator');
-        const statusText = document.getElementById('status-text');
-
-        // File upload handlers
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', handleDragOver);
-        uploadArea.addEventListener('dragleave', handleDragLeave);
-        uploadArea.addEventListener('drop', handleDrop);
-        fileInput.addEventListener('change', handleFileSelect);
+        let currentPage = 1;
+        const itemsPerPage = 10;
         
-        // Button handlers
-        processBtn.addEventListener('click', processInvoice);
-        clearBtn.addEventListener('click', clearAll);
-        copyJsonBtn.addEventListener('click', copyToClipboard);
-        downloadJsonBtn.addEventListener('click', downloadJson);
-        saveDbBtn.addEventListener('click', saveToDatabase);
-
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+            checkAuthStatus();
+        });
+        
+        function initializeApp() {
+            const storedToken = localStorage.getItem('authToken');
+            const storedUser = localStorage.getItem('currentUser');
+            
+            if (storedToken && storedUser) {
+                try {
+                    authToken = storedToken;
+                    currentUser = JSON.parse(storedUser);
+                    updateAuthUI(true);
+                    determineUserView();
+                } catch (e) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    showLandingView();
+                }
+            } else {
+                showLandingView();
+            }
+        }
+        
+        function setupEventListeners() {
+            // File upload
+            const fileInput = document.getElementById('file-upload');
+            const uploadArea = document.getElementById('upload-area');
+            
+            if (fileInput) fileInput.addEventListener('change', handleFileSelect);
+            if (uploadArea) {
+                uploadArea.addEventListener('click', () => fileInput?.click());
+                uploadArea.addEventListener('dragover', handleDragOver);
+                uploadArea.addEventListener('dragleave', handleDragLeave);
+                uploadArea.addEventListener('drop', handleDrop);
+            }
+            
+            // Processing
+            const processBtn = document.getElementById('process-btn');
+            if (processBtn) processBtn.addEventListener('click', processInvoice);
+            
+            // Results
+            const copyBtn = document.getElementById('copy-json-btn');
+            const downloadBtn = document.getElementById('download-json-btn');
+            const saveBtn = document.getElementById('save-db-btn');
+            
+            if (copyBtn) copyBtn.addEventListener('click', copyToClipboard);
+            if (downloadBtn) downloadBtn.addEventListener('click', downloadJson);
+            if (saveBtn) saveBtn.addEventListener('click', saveToDatabase);
+            
+            // Navigation
+            const navProcessing = document.getElementById('nav-processing');
+            const navDashboard = document.getElementById('nav-dashboard');
+            
+            if (navProcessing) navProcessing.addEventListener('click', switchToProcessing);
+            if (navDashboard) navDashboard.addEventListener('click', switchToDashboard);
+            
+            // Dashboard
+            const processNewBtn = document.getElementById('process-new-btn');
+            const refreshBtn = document.getElementById('refresh-invoices');
+            
+            if (processNewBtn) processNewBtn.addEventListener('click', switchToProcessing);
+            if (refreshBtn) refreshBtn.addEventListener('click', () => loadInvoiceHistory(currentPage));
+            
+            // User menu
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+            
+            // Clear button
+            const clearBtn = document.getElementById('clear-btn');
+            if (clearBtn) clearBtn.addEventListener('click', clearAll);
+        }
+        
+        // ===== AUTHENTICATION =====
+        async function checkAuthStatus() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) {
+                    clearAuth();
+                    showLandingView();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            }
+        }
+        
+        async function determineUserView() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch('/api/user/status', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.is_new_user) {
+                        showProcessingView(true);
+                    } else {
+                        showDashboardView();
+                    }
+                } else {
+                    showProcessingView(false);
+                }
+            } catch (error) {
+                console.error('Error determining user view:', error);
+                showProcessingView(false);
+            }
+        }
+        
+        async function handleLandingRegister(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('landing-submit');
+            const errorDiv = document.getElementById('landing-error');
+            const errorMsg = document.getElementById('landing-error-message');
+            
+            if (!submitBtn || !errorDiv || !errorMsg) return;
+            
+            const formData = new FormData(event.target);
+            const registerData = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                full_name: formData.get('full_name') || null,
+                password: formData.get('password')
+            };
+            
+            submitBtn.textContent = 'Creating Account...';
+            submitBtn.disabled = true;
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(registerData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    authToken = result.access_token;
+                    currentUser = result.user;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    updateAuthUI(true);
+                    showProcessingView(true);
+                    showToast(`Welcome, ${currentUser.username}! Let's process your first invoice.`);
+                } else {
+                    errorMsg.textContent = result.detail || 'Registration failed';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.textContent = 'Create Account & Start Processing';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('login-submit');
+            const errorDiv = document.getElementById('login-error');
+            const errorMsg = document.getElementById('login-error-message');
+            
+            if (!submitBtn || !errorDiv || !errorMsg) return;
+            
+            const formData = new FormData(event.target);
+            const loginData = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+            
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    authToken = result.access_token;
+                    currentUser = result.user;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    updateAuthUI(true);
+                    hideLoginModal();
+                    determineUserView();
+                    showToast(`Welcome back, ${currentUser.username}!`);
+                } else {
+                    errorMsg.textContent = result.detail || 'Login failed';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.textContent = 'Login';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                if (authToken) {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                }
+            } catch (error) {
+                console.log('Logout endpoint error:', error);
+            }
+            
+            clearAuth();
+            showLandingView();
+            showToast('Logged out successfully');
+        }
+        
+        function clearAuth() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            updateAuthUI(false);
+        }
+        
+        // ===== VIEW MANAGEMENT =====
+        function updateAuthUI(isAuthenticated) {
+            const userMenu = document.getElementById('user-menu');
+            const userGreeting = document.getElementById('user-greeting');
+            
+            if (isAuthenticated && currentUser && userMenu && userGreeting) {
+                userMenu.classList.remove('hidden');
+                userGreeting.textContent = `Welcome, ${currentUser.username}!`;
+            } else if (userMenu) {
+                userMenu.classList.add('hidden');
+            }
+        }
+        
+        function showLandingView() {
+            currentView = 'landing';
+            const landingView = document.getElementById('landing-view');
+            const processingView = document.getElementById('processing-view');
+            const dashboardView = document.getElementById('dashboard-view');
+            
+            if (landingView) landingView.classList.remove('hidden');
+            if (processingView) processingView.classList.add('hidden');
+            if (dashboardView) dashboardView.classList.add('hidden');
+        }
+        
+        function showProcessingView(isNewUser = false) {
+            currentView = 'processing';
+            const landingView = document.getElementById('landing-view');
+            const processingView = document.getElementById('processing-view');
+            const dashboardView = document.getElementById('dashboard-view');
+            
+            if (landingView) landingView.classList.add('hidden');
+            if (processingView) processingView.classList.remove('hidden');
+            if (dashboardView) dashboardView.classList.add('hidden');
+            
+            const welcomeMsg = document.getElementById('new-user-welcome');
+            if (welcomeMsg) {
+                if (isNewUser) {
+                    welcomeMsg.classList.remove('hidden');
+                } else {
+                    welcomeMsg.classList.add('hidden');
+                }
+            }
+            
+            updateNavTabs('processing');
+        }
+        
+        function showDashboardView() {
+            currentView = 'dashboard';
+            const landingView = document.getElementById('landing-view');
+            const processingView = document.getElementById('processing-view');
+            const dashboardView = document.getElementById('dashboard-view');
+            
+            if (landingView) landingView.classList.add('hidden');
+            if (processingView) processingView.classList.add('hidden');
+            if (dashboardView) dashboardView.classList.remove('hidden');
+            
+            updateNavTabs('dashboard');
+            loadDashboard();
+        }
+        
+        function switchToProcessing() {
+            showProcessingView(false);
+        }
+        
+        function switchToDashboard() {
+            showDashboardView();
+        }
+        
+        function updateNavTabs(activeView) {
+            const navProcessing = document.getElementById('nav-processing');
+            const navDashboard = document.getElementById('nav-dashboard');
+            
+            if (!navProcessing || !navDashboard) return;
+            
+            if (activeView === 'processing') {
+                navProcessing.classList.add('bg-accent-primary', 'text-white');
+                navProcessing.classList.remove('text-text-secondary', 'hover:text-text-primary', 'hover:bg-bg-tertiary');
+                navDashboard.classList.remove('bg-accent-primary', 'text-white');
+                navDashboard.classList.add('text-text-secondary', 'hover:text-text-primary', 'hover:bg-bg-tertiary');
+            } else {
+                navDashboard.classList.add('bg-accent-primary', 'text-white');
+                navDashboard.classList.remove('text-text-secondary', 'hover:text-text-primary', 'hover:bg-bg-tertiary');
+                navProcessing.classList.remove('bg-accent-primary', 'text-white');
+                navProcessing.classList.add('text-text-secondary', 'hover:text-text-primary', 'hover:bg-bg-tertiary');
+            }
+        }
+        
+        // ===== MODAL MANAGEMENT =====
+        function showLoginModal() {
+            const loginModal = document.getElementById('login-modal');
+            const loginUsername = document.getElementById('login-username');
+            
+            if (loginModal) loginModal.classList.remove('hidden');
+            if (loginUsername) loginUsername.focus();
+        }
+        
+        function hideLoginModal() {
+            const loginModal = document.getElementById('login-modal');
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            
+            if (loginModal) loginModal.classList.add('hidden');
+            if (loginForm) loginForm.reset();
+            if (loginError) loginError.classList.add('hidden');
+        }
+        
+        function switchToRegister() {
+            hideLoginModal();
+            showLandingView();
+            const regUsername = document.getElementById('reg-username');
+            if (regUsername) regUsername.focus();
+        }
+        
+        // ===== FILE HANDLING =====
         function handleDragOver(e) {
             e.preventDefault();
-            uploadArea.classList.add('dragover');
+            const uploadArea = document.getElementById('upload-area');
+            if (uploadArea) uploadArea.classList.add('dragover');
         }
-
+        
         function handleDragLeave(e) {
             e.preventDefault();
-            uploadArea.classList.remove('dragover');
+            const uploadArea = document.getElementById('upload-area');
+            if (uploadArea) uploadArea.classList.remove('dragover');
         }
-
+        
         function handleDrop(e) {
             e.preventDefault();
-            uploadArea.classList.remove('dragover');
+            const uploadArea = document.getElementById('upload-area');
+            if (uploadArea) uploadArea.classList.remove('dragover');
+            
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 handleFile(files[0]);
             }
         }
-
+        
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file) {
                 handleFile(file);
             }
         }
-
+        
         function handleFile(file) {
-            // Validate file type
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
                 showError('Unsupported file type. Please use JPG, PNG, or WEBP images.');
                 return;
             }
-
-            // Validate file size (10MB max)
+            
             if (file.size > 10 * 1024 * 1024) {
                 showError('File too large. Maximum size is 10MB.');
                 return;
             }
-
+            
             currentFile = file;
             showFilePreview(file);
             hideError();
+            
+            const processBtn = document.getElementById('process-btn');
+            const processText = document.getElementById('process-text');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            if (processBtn) processBtn.disabled = false;
+            if (processText) processText.textContent = 'Process Invoice';
+            if (clearBtn) clearBtn.classList.remove('hidden');
         }
-
+        
         function showFilePreview(file) {
-            // Show preview
             const reader = new FileReader();
             reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                fileName.textContent = file.name;
-                fileSize.textContent = formatFileSize(file.size);
+                const previewImage = document.getElementById('preview-image');
+                const previewContainer = document.getElementById('preview-container');
+                const fileName = document.getElementById('file-name');
+                const fileSize = document.getElementById('file-size');
                 
-                uploadContent.classList.add('hidden');
-                previewContainer.classList.remove('hidden');
-                clearBtn.classList.remove('hidden');
-                
-                // Enable process button
-                processBtn.disabled = false;
-                processText.textContent = 'Process Invoice';
+                if (previewImage) previewImage.src = e.target.result;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (fileName) fileName.textContent = file.name;
+                if (fileSize) fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
             };
             reader.readAsDataURL(file);
         }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
+        
+        // ===== PROCESSING =====
         async function processInvoice() {
-            if (!currentFile) return;
-
+            if (!currentFile || !authToken) return;
+            
             setProcessingState(true);
             hideError();
             hideResults();
-
+            
             try {
                 const formData = new FormData();
                 formData.append('file', currentFile);
-
-                const response = await fetch('/api/parse-invoice', {
+                
+                const uploadResponse = await fetch('/api/files/upload', {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
                     body: formData
                 });
-
-                const result = await response.json();
-
-                if (result.success && result.data) {
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('Failed to upload file');
+                }
+                
+                const uploadResult = await uploadResponse.json();
+                
+                const processResponse = await fetch('/api/parse-invoice', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+                
+                const result = await processResponse.json();
+                
+                if (result.success) {
                     extractedData = result.data;
-                    showResults(result.data, result.processing_time);
-                    showToast('Invoice processed successfully!');
+                    extractedData.original_file_id = uploadResult.file_id;
+                    extractedData.original_filename = uploadResult.original_name;
+                    
+                    showResults(result);
                 } else {
-                    showError(result.error || 'Failed to process invoice');
+                    showError(result.error || 'Processing failed');
                 }
             } catch (error) {
-                showError('Network error: ' + error.message);
+                showError(`Processing error: ${error.message}`);
             } finally {
                 setProcessingState(false);
             }
         }
-
+        
         function setProcessingState(processing) {
+            const processBtn = document.getElementById('process-btn');
+            const processText = document.getElementById('process-text');
+            const processSpinner = document.getElementById('process-spinner');
+            
             if (processing) {
-                processBtn.disabled = true;
-                processText.textContent = 'Processing...';
-                processSpinner.classList.remove('hidden');
-                processingInfo.classList.remove('hidden');
-                statusIndicator.className = 'w-3 h-3 bg-yellow-500 rounded-full';
-                statusText.textContent = 'Processing';
+                if (processBtn) processBtn.disabled = true;
+                if (processText) processText.textContent = 'Processing...';
+                if (processSpinner) processSpinner.classList.remove('hidden');
             } else {
-                processBtn.disabled = false;
-                processText.textContent = 'Process Invoice';
-                processSpinner.classList.add('hidden');
-                processingInfo.classList.add('hidden');
-                statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
-                statusText.textContent = 'Ready';
+                if (processBtn) processBtn.disabled = false;
+                if (processText) processText.textContent = 'Process Invoice';
+                if (processSpinner) processSpinner.classList.add('hidden');
             }
         }
-
-        function showResults(data, processingTimeMs) {
-            // Hide no results message
-            noResults.classList.add('hidden');
+        
+        function showResults(result) {
+            const resultsSection = document.getElementById('results-section');
+            const jsonOutput = document.getElementById('json-output');
+            const processingTime = document.getElementById('processing-time');
             
-            // Show JSON data
-            jsonOutput.textContent = JSON.stringify(data, null, 2);
-            jsonContainer.classList.remove('hidden');
-            
-            // Show stats
-            const confidence = data.extraction_confidence || 'medium';
-            confidenceScore.textContent = confidence.charAt(0).toUpperCase() + confidence.slice(1);
-            processingTime.textContent = processingTimeMs ? processingTimeMs.toFixed(2) : '-';
-            statsContainer.classList.remove('hidden');
-            
-            // Show action buttons
-            copyJsonBtn.classList.remove('hidden');
-            downloadJsonBtn.classList.remove('hidden');
-            saveDbBtn.classList.remove('hidden');
-            
-            // Update confidence color
-            const confidenceColors = {
-                'high': 'text-green-600',
-                'medium': 'text-yellow-600', 
-                'low': 'text-red-600'
-            };
-            confidenceScore.className = `text-2xl font-bold ${confidenceColors[confidence] || 'text-gray-600'}`;
+            if (resultsSection) resultsSection.classList.remove('hidden');
+            if (jsonOutput) jsonOutput.textContent = JSON.stringify(result.data, null, 2);
+            if (processingTime && result.processing_time) {
+                processingTime.textContent = `${result.processing_time.toFixed(2)}s`;
+            }
         }
-
+        
         function hideResults() {
-            noResults.classList.remove('hidden');
-            jsonContainer.classList.add('hidden');
-            statsContainer.classList.add('hidden');
-            copyJsonBtn.classList.add('hidden');
-            downloadJsonBtn.classList.add('hidden');
-            saveDbBtn.classList.add('hidden');
-            hideDatabaseStatus();
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) resultsSection.classList.add('hidden');
         }
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorContainer.classList.remove('hidden');
-            statusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
-            statusText.textContent = 'Error';
-        }
-
-        function hideError() {
-            errorContainer.classList.add('hidden');
-        }
-
-        function clearAll() {
-            currentFile = null;
-            extractedData = null;
-            
-            // Reset upload area
-            uploadContent.classList.remove('hidden');
-            previewContainer.classList.add('hidden');
-            clearBtn.classList.add('hidden');
-            
-            // Reset button
-            processBtn.disabled = true;
-            processText.textContent = 'Select an invoice to process';
-            
-            // Reset file input
-            fileInput.value = '';
-            
-            // Hide results and errors
-            hideResults();
-            hideError();
-            
-            // Reset status
-            statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
-            statusText.textContent = 'Ready';
-        }
-
-        // Database functions
-        function showDatabaseStatus(status, message) {
-            dbStatusMessage.textContent = message;
-            dbStatusContainer.classList.remove('hidden');
-            
-            if (status === 'saving') {
-                dbStatusIcon.classList.add('loading-spinner');
-                dbStatusContainer.className = 'mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg';
-            } else if (status === 'success') {
-                dbStatusIcon.classList.remove('loading-spinner');
-                dbStatusContainer.className = 'mt-4 p-4 bg-green-50 border border-green-200 rounded-lg';
-                dbStatusMessage.className = 'text-xs text-green-600';
-            } else if (status === 'error') {
-                dbStatusIcon.classList.remove('loading-spinner');
-                dbStatusContainer.className = 'mt-4 p-4 bg-red-50 border border-red-200 rounded-lg';
-                dbStatusMessage.className = 'text-xs text-red-600';
-            }
-        }
-
-        function hideDatabaseStatus() {
-            dbStatusContainer.classList.add('hidden');
-            dbStatusIcon.classList.remove('loading-spinner');
-            dbStatusMessage.className = 'text-xs text-blue-600';
-        }
-
-        function updateDatabaseButton(state) {
-            if (state === 'saved') {
-                saveDbBtn.textContent = 'Saved ✓';
-                saveDbBtn.className = 'text-sm text-green-600 hover:text-green-700 font-medium';
-                saveDbBtn.disabled = true;
-            } else if (state === 'saving') {
-                saveDbBtn.textContent = 'Saving...';
-                saveDbBtn.disabled = true;
-            } else {
-                saveDbBtn.textContent = 'Save to DB';
-                saveDbBtn.className = 'text-sm text-primary hover:text-secondary font-medium';
-                saveDbBtn.disabled = false;
-            }
-        }
-
-        async function saveToDatabase() {
-            if (!extractedData) return;
-            
-            updateDatabaseButton('saving');
-            showDatabaseStatus('saving', 'Saving invoice to database...');
-            
-            try {
-                const response = await fetch('/api/save-invoice', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(extractedData)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showDatabaseStatus('success', `Invoice saved successfully! ID: ${result.invoice_id}`);
-                    updateDatabaseButton('saved');
-                    showToast(`Invoice saved to database! ID: ${result.invoice_id}`);
-                    
-                    setTimeout(() => hideDatabaseStatus(), 3000);
-                } else {
-                    const errorMsg = result.duplicate ? 
-                        'Invoice already exists in database' : 
-                        (result.error || 'Failed to save invoice');
-                    
-                    showDatabaseStatus('error', errorMsg);
-                    updateDatabaseButton('reset');
-                    showToast(errorMsg, 'error');
-                    
-                    setTimeout(() => hideDatabaseStatus(), 5000);
-                }
-            } catch (error) {
-                const errorMsg = 'Database connection error: ' + error.message;
-                showDatabaseStatus('error', errorMsg);
-                updateDatabaseButton('reset');
-                showToast(errorMsg, 'error');
-                
-                setTimeout(() => hideDatabaseStatus(), 5000);
-            }
-        }
-
+        
+        // ===== RESULT ACTIONS =====
         async function copyToClipboard() {
             if (!extractedData) return;
             
@@ -567,7 +968,7 @@
                 showToast('Failed to copy to clipboard', 'error');
             }
         }
-
+        
         function downloadJson() {
             if (!extractedData) return;
             
@@ -585,10 +986,246 @@
             
             showToast('JSON file downloaded!');
         }
-
+        
+        async function saveToDatabase() {
+            if (!extractedData || !authToken) return;
+            
+            const saveBtn = document.getElementById('save-db-btn');
+            if (!saveBtn) return;
+            
+            const originalText = saveBtn.textContent;
+            
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/save-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(extractedData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Invoice saved to database!');
+                    
+                    setTimeout(() => {
+                        if (currentView === 'processing') {
+                            const welcomeMsg = document.getElementById('new-user-welcome');
+                            if (welcomeMsg) welcomeMsg.classList.add('hidden');
+                        }
+                    }, 2000);
+                } else {
+                    showToast(result.message || 'Failed to save invoice', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save invoice', 'error');
+            } finally {
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+        
+        // ===== DASHBOARD =====
+        async function loadDashboard() {
+            if (!authToken) return;
+            
+            try {
+                const statsResponse = await fetch('/api/dashboard/stats', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    updateDashboardStats(statsData);
+                }
+                
+                await loadInvoiceHistory(1);
+            } catch (error) {
+                console.error('Dashboard loading error:', error);
+                showToast('Failed to load dashboard data', 'error');
+            }
+        }
+        
+        function updateDashboardStats(data) {
+            const totalInvoices = document.getElementById('total-invoices');
+            const recentInvoices = document.getElementById('recent-invoices');
+            const successRate = document.getElementById('success-rate');
+            
+            if (totalInvoices) totalInvoices.textContent = data.statistics.total_invoices;
+            if (recentInvoices) recentInvoices.textContent = data.statistics.recent_invoices;
+            if (successRate) successRate.textContent = `${data.statistics.success_rate}%`;
+            
+            loadStorageStats();
+        }
+        
+        async function loadStorageStats() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch('/api/files', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const storageUsed = document.getElementById('storage-used');
+                    if (storageUsed) storageUsed.textContent = `${data.storage_stats.total_size_mb} MB`;
+                }
+            } catch (error) {
+                console.error('Storage stats error:', error);
+            }
+        }
+        
+        async function loadInvoiceHistory(page = 1) {
+            if (!authToken) return;
+            
+            const invoiceLoading = document.getElementById('invoice-loading');
+            const noInvoices = document.getElementById('no-invoices');
+            
+            if (invoiceLoading) invoiceLoading.classList.remove('hidden');
+            if (noInvoices) noInvoices.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`/api/dashboard/invoices?page=${page}&limit=${itemsPerPage}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayInvoiceHistory(data);
+                } else {
+                    throw new Error('Failed to load invoices');
+                }
+            } catch (error) {
+                console.error('Invoice history loading error:', error);
+                if (noInvoices) noInvoices.classList.remove('hidden');
+            } finally {
+                if (invoiceLoading) invoiceLoading.classList.add('hidden');
+            }
+        }
+        
+        function displayInvoiceHistory(data) {
+            const invoiceHistory = document.getElementById('invoice-history');
+            const noInvoices = document.getElementById('no-invoices');
+            
+            if (!invoiceHistory) return;
+            
+            // Clear existing items
+            const existingItems = invoiceHistory.querySelectorAll('.invoice-item');
+            existingItems.forEach(item => item.remove());
+            
+            if (data.invoices.length === 0) {
+                if (noInvoices) noInvoices.classList.remove('hidden');
+                return;
+            }
+            
+            if (noInvoices) noInvoices.classList.add('hidden');
+            
+            data.invoices.forEach(invoice => {
+                const item = createInvoiceItem(invoice);
+                invoiceHistory.appendChild(item);
+            });
+        }
+        
+        function createInvoiceItem(invoice) {
+            const div = document.createElement('div');
+            div.className = 'invoice-item p-4 hover:bg-bg-tertiary/50 transition-colors';
+            
+            div.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4">
+                            <div>
+                                <h4 class="font-medium text-text-primary">${invoice.invoice_number || 'N/A'}</h4>
+                                <p class="text-sm text-text-muted">${new Date(invoice.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-text-primary">${invoice.net_amount ? `${invoice.currency || 'INR'} ${invoice.net_amount}` : 'N/A'}</p>
+                                <p class="text-sm text-text-muted">${invoice.extraction_confidence || 'medium'} confidence</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <button onclick="deleteInvoice('${invoice.id}')" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        async function deleteInvoice(invoiceId) {
+            if (!confirm('Are you sure you want to delete this invoice?')) return;
+            
+            try {
+                const response = await fetch(`/api/dashboard/invoices/${invoiceId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    showToast('Invoice deleted successfully');
+                    await loadInvoiceHistory(currentPage);
+                    await loadDashboard();
+                } else {
+                    throw new Error('Failed to delete invoice');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('Failed to delete invoice', 'error');
+            }
+        }
+        
+        // ===== UTILITY FUNCTIONS =====
+        function clearAll() {
+            currentFile = null;
+            extractedData = null;
+            
+            const fileInput = document.getElementById('file-upload');
+            const previewContainer = document.getElementById('preview-container');
+            const processBtn = document.getElementById('process-btn');
+            const processText = document.getElementById('process-text');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            if (fileInput) fileInput.value = '';
+            if (previewContainer) previewContainer.classList.add('hidden');
+            hideResults();
+            hideError();
+            
+            if (processBtn) processBtn.disabled = true;
+            if (processText) processText.textContent = 'Select an image to process';
+            if (clearBtn) clearBtn.classList.add('hidden');
+        }
+        
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            const errorContainer = document.getElementById('error-container');
+            
+            if (errorMessage) errorMessage.textContent = message;
+            if (errorContainer) errorContainer.classList.remove('hidden');
+        }
+        
+        function hideError() {
+            const errorContainer = document.getElementById('error-container');
+            if (errorContainer) errorContainer.classList.add('hidden');
+        }
+        
         function showToast(message, type = 'success') {
+            const successToast = document.getElementById('success-toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            if (!successToast || !toastMessage) return;
+            
             toastMessage.textContent = message;
-            successToast.classList.remove('hidden');
             
             if (type === 'error') {
                 successToast.className = successToast.className.replace('bg-green-500', 'bg-red-500');
@@ -596,43 +1233,31 @@
                 successToast.className = successToast.className.replace('bg-red-500', 'bg-green-500');
             }
             
+            successToast.classList.remove('hidden');
+            
             setTimeout(() => {
                 successToast.classList.add('hidden');
             }, 3000);
         }
-
-        // Check API health on load
-        async function checkApiHealth() {
-            try {
-                const response = await fetch('/api/health');
-                const health = await response.json();
-                
-                if (health.gemini_available) {
-                    statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
-                    
-                    // Check database status
-                    if (health.database_connected) {
-                        statusText.textContent = 'Ready (DB Connected)';
-                    } else if (health.database_url_configured) {
-                        statusText.textContent = 'Ready (DB Error)';
-                        console.warn('Database configured but connection failed:', health.message);
-                    } else {
-                        statusText.textContent = 'Ready (No DB)';
-                    }
-                } else {
-                    statusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
-                    statusText.textContent = 'AI Model Unavailable';
-                    showError('Gemini AI model is not available. Please check API configuration.');
+        
+        // Close modals on backdrop click
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                if (e.target.id === 'login-modal') {
+                    hideLoginModal();
                 }
-            } catch (error) {
-                statusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
-                statusText.textContent = 'Connection Error';
-                showError('Cannot connect to API. Please check if the server is running.');
             }
-        }
-
-        // Initialize app
-        checkApiHealth();
+        });
+        
+        // Close modals on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const loginModal = document.getElementById('login-modal');
+                if (loginModal && !loginModal.classList.contains('hidden')) {
+                    hideLoginModal();
+                }
+            }
+        });
     </script>
 </body>
 </html>
