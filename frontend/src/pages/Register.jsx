@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import { DocumentTextIcon, CheckCircleIcon } from '../components/ui/Icons';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import { openLoginModal } from '../components/forms/LoginModal';
 
 function Register() {
   const navigate = useNavigate();
@@ -92,46 +93,27 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-blue-50 dark:from-violet-900/20 dark:to-blue-900/20 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link to="/" className="flex justify-center items-center group">
           <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
             <DocumentTextIcon className="h-6 w-6 text-white" />
           </div>
-          <span className="ml-3 text-2xl font-bold text-gray-900">Invoice Parser</span>
+          <span className="ml-3 text-2xl font-bold text-gray-900 dark:text-gray-100">Invoice Parser</span>
         </Link>
         
-        <h2 className="mt-8 text-center text-3xl font-bold text-gray-900">
-          Start your free trial
+        <h2 className="mt-8 text-center text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Try it for yoursel!
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
           Join 10,000+ businesses automating their invoice processing
         </p>
       </div>
 
       {/* Registration Form */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-100">
-          {/* Benefits Preview */}
-          <div className="mb-8 p-4 bg-violet-50 rounded-lg border border-violet-100">
-            <h3 className="text-sm font-semibold text-violet-900 mb-3">What you get:</h3>
-            <div className="space-y-2">
-              <div className="flex items-center text-sm text-violet-800">
-                <CheckCircleIcon className="h-4 w-4 text-violet-600 mr-2 flex-shrink-0" />
-                <span>Process 10 invoices free</span>
-              </div>
-              <div className="flex items-center text-sm text-violet-800">
-                <CheckCircleIcon className="h-4 w-4 text-violet-600 mr-2 flex-shrink-0" />
-                <span>99.5% AI accuracy guarantee</span>
-              </div>
-              <div className="flex items-center text-sm text-violet-800">
-                <CheckCircleIcon className="h-4 w-4 text-violet-600 mr-2 flex-shrink-0" />
-                <span>No credit card required</span>
-              </div>
-            </div>
-          </div>
-
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Full Name"
@@ -193,12 +175,12 @@ function Register() {
             </div>
 
             <div className="mt-4 text-center">
-              <Link 
-                to="/" 
+              <button 
+                onClick={openLoginModal}
                 className="font-medium text-violet-600 hover:text-violet-500 transition-colors"
               >
                 Sign in to your account
-              </Link>
+              </button>
             </div>
           </div>
 

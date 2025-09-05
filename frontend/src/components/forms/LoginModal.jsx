@@ -160,12 +160,12 @@ function LoginModal() {
       isOpen={isOpen}
       onClose={handleClose}
       title="Welcome Back"
-      showCloseButton={true}
+      showCloseButton={false}
     >
       <div className="space-y-6">
         {/* Welcome Message */}
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Sign in to your account to continue processing invoices
           </p>
         </div>
@@ -222,7 +222,7 @@ function LoginModal() {
         {/* Register Link */}
         <div className="pt-4 border-t border-gray-200">
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Don't have an account?{' '}
               <button
                 type="button"
@@ -238,7 +238,7 @@ function LoginModal() {
 
         {/* Trust Indicators */}
         <div className="pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+          <div className="flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
               <span>Secure Login</span>

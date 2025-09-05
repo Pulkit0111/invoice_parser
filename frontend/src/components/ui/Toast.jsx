@@ -38,39 +38,39 @@ function Toast({ toast, onRemove }) {
     const configs = {
       success: {
         icon: CheckCircleIcon,
-        bgColor: 'bg-white',
-        borderColor: 'border-green-200',
-        iconColor: 'text-green-600',
-        iconBg: 'bg-green-100',
-        titleColor: 'text-green-800',
-        messageColor: 'text-green-700'
+        bgColor: 'bg-white dark:bg-gray-800',
+        borderColor: 'border-green-200 dark:border-green-800',
+        iconColor: 'text-green-600 dark:text-green-400',
+        iconBg: 'bg-green-100 dark:bg-green-900',
+        titleColor: 'text-green-800 dark:text-green-300',
+        messageColor: 'text-green-700 dark:text-green-400'
       },
       error: {
         icon: XCircleIcon,
-        bgColor: 'bg-white',
-        borderColor: 'border-red-200',
-        iconColor: 'text-red-600',
-        iconBg: 'bg-red-100',
-        titleColor: 'text-red-800',
-        messageColor: 'text-red-700'
+        bgColor: 'bg-white dark:bg-gray-800',
+        borderColor: 'border-red-200 dark:border-red-800',
+        iconColor: 'text-red-600 dark:text-red-400',
+        iconBg: 'bg-red-100 dark:bg-red-900',
+        titleColor: 'text-red-800 dark:text-red-300',
+        messageColor: 'text-red-700 dark:text-red-400'
       },
       warning: {
         icon: ExclamationTriangleIcon,
-        bgColor: 'bg-white',
-        borderColor: 'border-yellow-200',
-        iconColor: 'text-yellow-600',
-        iconBg: 'bg-yellow-100',
-        titleColor: 'text-yellow-800',
-        messageColor: 'text-yellow-700'
+        bgColor: 'bg-white dark:bg-gray-800',
+        borderColor: 'border-yellow-200 dark:border-yellow-800',
+        iconColor: 'text-yellow-600 dark:text-yellow-400',
+        iconBg: 'bg-yellow-100 dark:bg-yellow-900',
+        titleColor: 'text-yellow-800 dark:text-yellow-300',
+        messageColor: 'text-yellow-700 dark:text-yellow-400'
       },
       info: {
         icon: InformationCircleIcon,
-        bgColor: 'bg-white',
-        borderColor: 'border-blue-200',
-        iconColor: 'text-blue-600',
-        iconBg: 'bg-blue-100',
-        titleColor: 'text-blue-800',
-        messageColor: 'text-blue-700'
+        bgColor: 'bg-white dark:bg-gray-800',
+        borderColor: 'border-blue-200 dark:border-blue-800',
+        iconColor: 'text-blue-600 dark:text-blue-400',
+        iconBg: 'bg-blue-100 dark:bg-blue-900',
+        titleColor: 'text-blue-800 dark:text-blue-300',
+        messageColor: 'text-blue-700 dark:text-blue-400'
       }
     };
     
@@ -111,7 +111,7 @@ function Toast({ toast, onRemove }) {
           {/* Close Button */}
           <div className="ml-4 flex-shrink-0 flex">
             <button
-              className="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 rounded-md transition-colors"
+              className="inline-flex text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 rounded-md transition-colors"
               onClick={handleRemove}
             >
               <span className="sr-only">Close</span>
@@ -122,7 +122,7 @@ function Toast({ toast, onRemove }) {
       </div>
       
       {/* Progress Bar */}
-      <div className="h-1 bg-gray-100">
+      <div className="h-1 bg-gray-100 dark:bg-gray-700">
         <div 
           className={`h-full transition-all ease-linear ${
             toast.type === 'success' ? 'bg-green-500' :

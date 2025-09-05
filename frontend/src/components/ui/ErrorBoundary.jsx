@@ -50,30 +50,30 @@ class ErrorBoundary extends Component {
     if (this.state.hasError) {
       // Fallback UI
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
           <div className="max-w-md w-full text-center">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
               {/* Error Icon */}
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ExclamationTriangleIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
 
               {/* Error Message */}
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Oops! Something went wrong
               </h1>
               
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 We're sorry, but something unexpected happened. Don't worry, your data is safe.
               </p>
 
               {/* Error Details (Development Only) */}
               {import.meta.env.DEV && this.state.error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-left">
-                  <h3 className="text-sm font-medium text-red-800 mb-2">
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-left">
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
                     Error Details (Development Mode):
                   </h3>
-                  <div className="text-xs text-red-700 font-mono overflow-auto max-h-32">
+                  <div className="text-xs text-red-700 dark:text-red-400 font-mono overflow-auto max-h-32">
                     <div className="mb-2">
                       <strong>Error:</strong> {this.state.error.toString()}
                     </div>
@@ -109,7 +109,7 @@ class ErrorBoundary extends Component {
               </div>
 
               {/* Help Text */}
-              <p className="text-sm text-gray-500 mt-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-6">
                 If this problem persists, please contact support or try refreshing the page.
               </p>
             </div>

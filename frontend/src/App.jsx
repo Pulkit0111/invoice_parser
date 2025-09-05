@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import LoadingSpinner from './components/ui/LoadingSpinner';
@@ -22,12 +23,12 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <div className="mt-4 space-y-2">
-            <p className="text-gray-600">Loading application...</p>
-            <p className="text-sm text-gray-500">Please wait while we initialize your session</p>
+            <p className="text-gray-600 dark:text-gray-300">Loading application...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we initialize your session</p>
           </div>
         </div>
       </div>
@@ -80,12 +81,14 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <NotificationProvider>
-          <AuthProvider>
-            <AppRoutes />
-            <PerformanceMonitor />
-          </AuthProvider>
-        </NotificationProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <AppRoutes />
+              <PerformanceMonitor />
+            </AuthProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </Router>
     </ErrorBoundary>
   );
