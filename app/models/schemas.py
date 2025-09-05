@@ -92,25 +92,22 @@ class SaveResponseSchema(BaseModel):
 
 class UserCreateSchema(BaseModel):
     """Schema for user registration."""
-    username: str
+    name: str  # Full name of the user
     email: str  # Using str instead of EmailStr for simplicity
-    full_name: Optional[str] = None
     password: str
 
 
 class UserSchema(BaseModel):
     """Schema for user information (response)."""
     id: str
-    username: str
+    name: str  # Full name of the user
     email: str
-    full_name: Optional[str] = None
     is_active: bool
-    created_at: str
 
 
 class UserLoginSchema(BaseModel):
     """Schema for user login."""
-    username: str
+    email: str
     password: str
 
 

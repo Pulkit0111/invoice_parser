@@ -40,25 +40,20 @@ class AuthService:
         """
         try:
             with get_db_session() as session:
-                # Check if username or email already exists
+                # Check if email already exists
                 existing_user = session.query(UserModel).filter(
-                    (UserModel.username == user_data.username) | 
-                    (UserModel.email == user_data.email)
+                    UserModel.email == user_data.email
                 ).first()
                 
                 if existing_user:
-                    if existing_user.username == user_data.username:
-                        raise ValueError("Username already exists")
-                    else:
-                        raise ValueError("Email already exists")
+                    raise ValueError("Email already exists")
                 
                 # Create new user
                 hashed_password = hash_password(user_data.password)
                 
                 new_user = UserModel(
-                    username=user_data.username,
+                    name=user_data.name,
                     email=user_data.email,
-                    full_name=user_data.full_name,
                     hashed_password=hashed_password,
                     is_active=True
                 )
@@ -68,21 +63,17 @@ class AuthService:
                 
                 # Access attributes while in session context
                 user_id = str(new_user.id)
-                username = new_user.username
+                name = new_user.name
                 email = new_user.email
-                full_name = new_user.full_name
                 is_active = new_user.is_active
-                created_at = new_user.created_at.isoformat()
                 
-                logger.info(f"Created new user: {user_data.username}")
+                logger.info(f"Created new user: {user_data.email}")
                 
                 return UserSchema(
                     id=user_id,
-                    username=username,
+                    name=name,
                     email=email,
-                    full_name=full_name,
-                    is_active=is_active,
-                    created_at=created_at
+                    is_active=is_active
                 )
                 
         except IntegrityError as e:
@@ -92,12 +83,12 @@ class AuthService:
             logger.error(f"Error creating user: {e}")
             raise
     
-    def authenticate_user(self, username: str, password: str) -> Optional[UserModel]:
+    def authenticate_user(self, email: str, password: str) -> Optional[UserModel]:
         """
-        Authenticate a user with username and password.
+        Authenticate a user with email and password.
         
         Args:
-            username: Username or email
+            email: User email address
             password: Plain text password
             
         Returns:
@@ -105,9 +96,9 @@ class AuthService:
         """
         try:
             with get_db_session() as session:
-                # Find user by username or email
+                # Find user by email
                 user = session.query(UserModel).filter(
-                    (UserModel.username == username) | (UserModel.email == username)
+                    UserModel.email == email
                 ).first()
                 
                 if not user:
@@ -144,41 +135,37 @@ class AuthService:
         """
         # Authenticate and get user data within session context
         with get_db_session() as session:
-            # Find user by username or email
+            # Find user by email
             user = session.query(UserModel).filter(
-                (UserModel.username == login_data.username) | (UserModel.email == login_data.username)
+                UserModel.email == login_data.email
             ).first()
             
             if not user:
-                raise ValueError("Invalid username or password")
+                raise ValueError("Invalid email or password")
             
             if not user.is_active:
-                raise ValueError("Invalid username or password")
+                raise ValueError("Invalid email or password")
             
             if not verify_password(login_data.password, user.hashed_password):
-                raise ValueError("Invalid username or password")
+                raise ValueError("Invalid email or password")
             
             # Access user attributes while in session context
             user_id = str(user.id)
-            username = user.username
+            name = user.name
             email = user.email
-            full_name = user.full_name
             is_active = user.is_active
-            created_at = user.created_at.isoformat()
             
         
         # Create access token
         access_token = create_access_token(
-            data={"sub": user_id, "username": username}
+            data={"sub": user_id, "email": email}
         )
         
         user_schema = UserSchema(
             id=user_id,
-            username=username,
+            name=name,
             email=email,
-            full_name=full_name,
-            is_active=is_active,
-            created_at=created_at
+            is_active=is_active
         )
         
         return TokenSchema(
@@ -239,7 +226,7 @@ class AuthService:
                 
                 return UserSchema(
                     id=str(user.id),
-                    username=user.username,
+                    username=user.email,
                     email=user.email,
                     full_name=user.full_name,
                     is_active=user.is_active,

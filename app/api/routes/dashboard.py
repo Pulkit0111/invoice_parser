@@ -35,7 +35,7 @@ async def get_user_invoices(
             limit=limit
         )
         
-        logger.info(f"Retrieved {len(result['invoices'])} invoices for user {current_user.username}")
+        logger.info(f"Retrieved {len(result['invoices'])} invoices for user {current_user.email}")
         return result
         
     except Exception as e:
@@ -57,12 +57,12 @@ async def get_user_statistics(
     try:
         stats = auth_service.get_user_stats(str(current_user.id))
         
-        logger.info(f"Retrieved stats for user {current_user.username}")
+        logger.info(f"Retrieved stats for user {current_user.email}")
         return {
             "user": {
-                "username": current_user.username,
-                "full_name": current_user.full_name,
-                "member_since": current_user.created_at.isoformat()
+                "name": current_user.name,
+                
+                
             },
             "statistics": stats
         }
@@ -91,7 +91,7 @@ async def delete_user_invoice(
         )
         
         if result["success"]:
-            logger.info(f"Invoice {invoice_id} deleted by user {current_user.username}")
+            logger.info(f"Invoice {invoice_id} deleted by user {current_user.email}")
             return result
         else:
             raise HTTPException(
@@ -119,9 +119,9 @@ async def get_user_profile(
     try:
         return {
             "id": str(current_user.id),
-            "username": current_user.username,
+            "name": current_user.name,
             "email": current_user.email,
-            "full_name": current_user.full_name,
+            
             "is_active": current_user.is_active,
             "created_at": current_user.created_at.isoformat(),
             "updated_at": current_user.updated_at.isoformat()

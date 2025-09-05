@@ -50,17 +50,17 @@
     <header class="bg-bg-secondary border-b border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-hover rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <div>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
                         <h1 class="text-xl font-bold text-text-primary">Invoice Parser</h1>
                         <p class="text-sm text-text-muted">AI-Powered OCR Processing</p>
+                        </div>
                     </div>
-                </div>
                 
                 <!-- User Menu (hidden initially) -->
                 <div id="user-menu" class="hidden flex items-center space-x-4">
@@ -71,7 +71,7 @@
                         <button id="nav-dashboard" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors text-text-secondary hover:text-text-primary hover:bg-bg-tertiary">
                             Dashboard
                         </button>
-                    </div>
+                </div>
                     <div class="flex items-center space-x-3">
                         <span id="user-greeting" class="text-sm text-text-secondary">Welcome!</span>
                         <button id="logout-btn" class="px-3 py-1 text-sm text-text-muted hover:text-text-primary rounded-lg transition-colors">
@@ -277,16 +277,16 @@
                     </div>
                     <button id="process-new-btn" class="btn-primary px-6 py-3 rounded-lg font-medium text-white">
                         Process New Invoice
-                    </button>
-                </div>
-                
+                        </button>
+                    </div>
+                    
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div class="card rounded-lg p-6">
                         <div class="flex items-center">
                             <div class="w-12 h-12 bg-accent-primary/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-6 h-6 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
+                            </svg>
                             </div>
                             <div class="ml-4">
                                 <div class="text-2xl font-bold text-text-primary" id="total-invoices">0</div>
@@ -300,22 +300,22 @@
                             <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                </svg>
+                            </svg>
                             </div>
                             <div class="ml-4">
                                 <div class="text-2xl font-bold text-text-primary" id="recent-invoices">0</div>
                                 <div class="text-sm text-text-muted">Recent (30 days)</div>
-                            </div>
                         </div>
                     </div>
-                    
+                </div>
+                
                     <div class="card rounded-lg p-6">
                         <div class="flex items-center">
                             <div class="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                            </div>
+                        </div>
                             <div class="ml-4">
                                 <div class="text-2xl font-bold text-text-primary" id="success-rate">100%</div>
                                 <div class="text-sm text-text-muted">Success Rate</div>
@@ -333,11 +333,11 @@
                             <div class="ml-4">
                                 <div class="text-2xl font-bold text-text-primary" id="storage-used">0 MB</div>
                                 <div class="text-sm text-text-muted">Storage Used</div>
-                            </div>
                         </div>
                     </div>
                 </div>
-                
+            </div>
+            
                 <div class="card rounded-lg">
                     <div class="p-6 border-b border-gray-700">
                         <div class="flex items-center justify-between">
@@ -347,15 +347,15 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
                             </button>
+                            </div>
                         </div>
-                    </div>
                     
                     <div id="invoice-history" class="divide-y divide-gray-700">
                         <div id="invoice-loading" class="p-8 text-center">
                             <div class="loading-spinner w-6 h-6 border-2 border-accent-primary border-t-transparent rounded-full mx-auto mb-2"></div>
                             <p class="text-text-muted">Loading invoices...</p>
-                        </div>
-                        
+                    </div>
+                    
                         <div id="no-invoices" class="hidden p-8 text-center">
                             <svg class="w-12 h-12 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -369,8 +369,8 @@
                 </div>
             </div>
         </div>
-    </div>
-    
+                        </div>
+                        
     <!-- Login Modal -->
     <div id="login-modal" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
         <div class="card rounded-lg max-w-md w-full mx-4 p-6">
@@ -381,14 +381,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
-            </div>
+                        </div>
             
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label for="login-username" class="block text-sm font-medium text-text-secondary mb-2">Username or Email</label>
                     <input type="text" id="login-username" name="username" required
                         class="form-input w-full px-3 py-2 rounded-lg">
-                </div>
+                    </div>
                 
                 <div>
                     <label for="login-password" class="block text-sm font-medium text-text-secondary mb-2">Password</label>
@@ -398,7 +398,7 @@
                 
                 <div id="login-error" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                     <p class="text-sm text-red-400" id="login-error-message"></p>
-                </div>
+            </div>
                 
                 <div class="flex space-x-3 pt-2">
                     <button type="submit" id="login-submit" 
@@ -422,7 +422,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Success Toast -->
     <div id="success-toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50">
         <div class="flex items-center">
@@ -473,15 +473,15 @@
         
         function setupEventListeners() {
             // File upload
-            const fileInput = document.getElementById('file-upload');
+        const fileInput = document.getElementById('file-upload');
             const uploadArea = document.getElementById('upload-area');
             
             if (fileInput) fileInput.addEventListener('change', handleFileSelect);
             if (uploadArea) {
                 uploadArea.addEventListener('click', () => fileInput?.click());
-                uploadArea.addEventListener('dragover', handleDragOver);
-                uploadArea.addEventListener('dragleave', handleDragLeave);
-                uploadArea.addEventListener('drop', handleDrop);
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
             }
             
             // Processing
@@ -810,13 +810,13 @@
             const uploadArea = document.getElementById('upload-area');
             if (uploadArea) uploadArea.classList.add('dragover');
         }
-        
+
         function handleDragLeave(e) {
             e.preventDefault();
             const uploadArea = document.getElementById('upload-area');
             if (uploadArea) uploadArea.classList.remove('dragover');
         }
-        
+
         function handleDrop(e) {
             e.preventDefault();
             const uploadArea = document.getElementById('upload-area');
@@ -827,26 +827,26 @@
                 handleFile(files[0]);
             }
         }
-        
+
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file) {
                 handleFile(file);
             }
         }
-        
+
         function handleFile(file) {
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
                 showError('Unsupported file type. Please use JPG, PNG, or WEBP images.');
                 return;
             }
-            
+
             if (file.size > 10 * 1024 * 1024) {
                 showError('File too large. Maximum size is 10MB.');
                 return;
             }
-            
+
             currentFile = file;
             showFilePreview(file);
             hideError();
@@ -859,7 +859,7 @@
             if (processText) processText.textContent = 'Process Invoice';
             if (clearBtn) clearBtn.classList.remove('hidden');
         }
-        
+
         function showFilePreview(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -875,25 +875,25 @@
             };
             reader.readAsDataURL(file);
         }
-        
+
         // ===== PROCESSING =====
         async function processInvoice() {
             if (!currentFile || !authToken) return;
-            
+
             setProcessingState(true);
             hideError();
             hideResults();
-            
+
             try {
                 const formData = new FormData();
                 formData.append('file', currentFile);
-                
+
                 const uploadResponse = await fetch('/api/files/upload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${authToken}` },
                     body: formData
                 });
-                
+
                 if (!uploadResponse.ok) {
                     throw new Error('Failed to upload file');
                 }
@@ -923,7 +923,7 @@
                 setProcessingState(false);
             }
         }
-        
+
         function setProcessingState(processing) {
             const processBtn = document.getElementById('process-btn');
             const processText = document.getElementById('process-text');
@@ -951,7 +951,7 @@
                 processingTime.textContent = `${result.processing_time.toFixed(2)}s`;
             }
         }
-        
+
         function hideResults() {
             const resultsSection = document.getElementById('results-section');
             if (resultsSection) resultsSection.classList.add('hidden');
@@ -968,7 +968,7 @@
                 showToast('Failed to copy to clipboard', 'error');
             }
         }
-        
+
         function downloadJson() {
             if (!extractedData) return;
             
@@ -1218,7 +1218,7 @@
             const errorContainer = document.getElementById('error-container');
             if (errorContainer) errorContainer.classList.add('hidden');
         }
-        
+
         function showToast(message, type = 'success') {
             const successToast = document.getElementById('success-toast');
             const toastMessage = document.getElementById('toast-message');
@@ -1239,7 +1239,7 @@
                 successToast.classList.add('hidden');
             }, 3000);
         }
-        
+
         // Close modals on backdrop click
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {

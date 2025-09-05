@@ -1,41 +1,58 @@
-# Product Requirements Document: Invoice Parser with Enhanced UX
+# Product Requirements Document: Invoice Parser - Production-Ready SaaS Application
 
 ## 📋 Document Information
-- **Product**: Invoice Parser with Registration-First Authentication
-- **Version**: 2.0
+- **Product**: Invoice Parser - Modern React SaaS Application
+- **Version**: 3.0
 - **Date**: December 2024
-- **Status**: Updated with Enhanced UX Requirements
-- **Estimated Development Time**: 4-5 hours
+- **Status**: Updated with React + Production-Ready Requirements
+- **Estimated Development Time**: 8-12 hours
 
 ## 🎯 Executive Summary
 
-Transform the Invoice Parser into a registration-first application with a modern dark theme UI, modal-based authentication, and intelligent user journey management. Users will experience a streamlined onboarding flow that prioritizes registration, provides contextual navigation between processing and dashboard views, and maintains all uploaded files locally for enhanced privacy and performance.
+Transform the Invoice Parser into a production-ready SaaS application with a modern React frontend, compelling marketing landing page, and professional user experience that competitors like DocuSign, PandaDoc, and Expensify would recognize as industry-standard. The application will feature a conversion-focused landing page, seamless onboarding, and an intuitive document processing workflow built with beginner-friendly React patterns.
 
 ### 🔍 Research Insights
-Based on analysis of modern document processing applications (Expensify, Dext, DocuSign, Rossum), the enhanced UX follows industry best practices:
-- **Registration-first onboarding** reduces friction and increases conversion
-- **Modal-based authentication** maintains workflow continuity
-- **Dark theme with violet accents** improves accessibility and professional appearance
-- **Dashboard vs direct processing** adapts to user experience level
-- **Local file storage** ensures privacy and faster processing
+Based on analysis of leading SaaS document processing applications (DocuSign, PandaDoc, Expensify, Receipt Bank, Klippa), the production-ready UX follows industry best practices:
+
+#### **Landing Page & Marketing**
+- **Hero-driven conversion pages** with clear value propositions and "Try for Free" CTAs
+- **Trust-building elements** including client logos, testimonials, and security badges
+- **Product demonstrations** through screenshots, GIFs, and interactive previews
+- **Minimal navigation** for unauthenticated users to focus on conversion
+
+#### **Technical Architecture**
+- **React + Vite + Tailwind CSS** for modern, maintainable, beginner-friendly development
+- **Component composition patterns** for educational and scalable code structure
+- **Context-based state management** for authentication and global state
+- **Responsive design patterns** with mobile-first approach
+
+#### **User Experience Patterns**
+- **Progressive disclosure** from landing → registration → processing → dashboard
+- **Side-by-side layouts** for upload and processing (desktop)
+- **Loading states and micro-interactions** for professional polish
+- **Persistent state management** across browser sessions
 
 ## 🚀 Product Objectives
 
 ### Primary Goals
-1. **Registration-First Onboarding**: Landing page shows registration form with login option
-2. **Intelligent User Journey**: Contextual navigation based on user experience (new vs returning)
-3. **Modern Dark Theme UI**: Professional dark interface with violet accent colors
-4. **Local File Management**: Store uploaded files in `./uploads` folder for privacy and performance
-5. **Modal-Based Authentication**: Non-disruptive login/register flows
-6. **Data Isolation**: Users can only access their own processed invoices
+1. **Production-Ready SaaS Landing Page**: Conversion-focused marketing page with hero section, value proposition, and "Try for Free" CTA
+2. **Modern React Architecture**: Built with React + Vite + Tailwind CSS using beginner-friendly patterns
+3. **Professional User Experience**: Industry-standard UI/UX matching competitors like DocuSign and PandaDoc
+4. **Seamless Onboarding Flow**: Landing → Registration → Contextual routing (Processing/Dashboard)
+5. **Enhanced Processing Interface**: Side-by-side upload and results layout with modern loading states
+6. **Comprehensive Dashboard**: Tabular invoice management with thumbnails, actions, and storage metrics
+7. **Persistent State Management**: Maintain user state across browser sessions and refreshes
+8. **Beginner-Friendly Codebase**: Educational React patterns suitable for teaching purposes
 
 ### Success Metrics
-- **Onboarding Conversion**: >80% of visitors complete registration
-- **User Journey Flow**: Seamless transition between registration → processing → dashboard
-- **File Management**: All uploads stored locally with proper organization
-- **UI/UX Quality**: Dark theme with consistent violet branding
-- **Authentication Flow**: Modal-based auth without page redirects
-- **Data Security**: Zero cross-user data leakage
+- **Landing Page Conversion**: >15% of visitors click "Try for Free"
+- **Registration Completion**: >80% of users who start registration complete it
+- **User Retention**: >60% of users return within 7 days
+- **Processing Success**: >95% of uploaded documents process without errors
+- **Performance**: Page load times <2 seconds, smooth animations
+- **Code Quality**: Maintainable, well-documented React components
+- **Mobile Experience**: Fully responsive across all device sizes
+- **State Persistence**: User data persists across browser sessions
 
 ## 👥 Target Users & User Journey
 
@@ -49,157 +66,240 @@ Based on analysis of modern document processing applications (Expensify, Dext, D
 2. **Mike (Accountant)**: Handles multiple clients, requires data separation
 3. **Lisa (Freelancer)**: Occasional use, values simplicity and security
 
-### 🎆 Detailed User Journey
+### 🎆 Enhanced User Journey
 
-#### **Step 1: Landing Experience**
-- **New Visitor**: Sees registration form immediately upon landing at `http://127.0.0.1:8000`
-- **Returning User**: Can click "Already have an account? Login" to access login modal
-- **No Authentication Barriers**: No processing options visible until authenticated
+#### **Step 1: Landing Page Experience**
+- **Marketing-Focused Landing**: Professional SaaS landing page with hero section, value proposition, and social proof
+- **Hero Section**: Compelling headline, subheading, and prominent "Try for Free" CTA button
+- **Product Demonstration**: Sample invoice images, processing animations, or screenshot galleries
+- **Trust Signals**: Client testimonials, security badges, feature highlights
+- **Single Page**: Scrollable sections showcasing capabilities, pricing, and benefits
+- **No Navigation Clutter**: Minimal header focusing on conversion (Logo + "Try for Free" + "Login")
 
 #### **Step 2: Registration Flow**
-- **Modal-Based**: Registration form opens in overlay modal
-- **Minimal Fields**: Username, email, password (optional full name)
-- **Auto-Login**: Successful registration automatically logs user in
-- **Error Handling**: Clear validation messages for duplicate accounts
+- **Dedicated Registration Page**: Clean, focused registration form (not modal)
+- **Modern Form Elements**: Contemporary input styling, validation feedback, loading states
+- **Loading Button**: Registration button transforms into loader during submission
+- **Success Notification**: Toast notification confirming successful registration
+- **Auto-Login & Routing**: Seamless transition to appropriate view based on user status
 
 #### **Step 3: Login Flow**
-- **Modal-Based**: Login form opens in overlay modal from landing page
-- **Credential Validation**: Username/email + password authentication
-- **Session Management**: JWT token stored locally for persistence
-- **Error Handling**: Clear messages for invalid credentials
+- **Modal-Based Login**: Overlay modal accessible from landing page and registration page
+- **Single Action Design**: Only "Login" button (no cancel - ESC to close)
+- **Loading State**: Login button shows loader during authentication
+- **Error Handling**: Inline validation and clear error messages
+- **Persistent Session**: JWT token management with localStorage persistence
 
-#### **Step 4: Post-Authentication Routing**
+#### **Step 4: Navigation System**
+- **Authenticated Navbar**: Visible only after login with:
+  - **Left**: Logo and product name
+  - **Center**: "Process" and "Dashboard" navigation tabs
+  - **Right**: User avatar with dropdown (Profile, Logout)
+- **Sticky Navigation**: Always visible at top during scrolling
+- **Context Awareness**: Active tab highlighting based on current view
 
-**For New Users (0 invoices processed):**
-- **Direct to Processing**: Show invoice upload interface immediately
-- **Welcome Message**: Brief onboarding tooltip explaining drag-and-drop
-- **Clean Interface**: Focus on first invoice processing experience
+#### **Step 5: Post-Authentication Routing**
 
-**For Returning Users (1+ invoices processed):**
-- **Dashboard First**: Show invoice history and statistics
-- **Process More Option**: Prominent "Process New Invoice" button
-- **Quick Actions**: Delete, re-download, view details for existing invoices
+**For New Users (0 invoices):**
+- **Direct to Processing**: Immediate access to upload interface
+- **Onboarding Hints**: Contextual guidance for first-time users
+- **Welcome State**: Empty state with clear next steps
 
-#### **Step 5: Invoice Processing**
-- **File Upload**: Drag-and-drop or click to browse
-- **Local Storage**: Files saved to `./uploads/[user_id]/[timestamp]_[filename]`
-- **Real-time Processing**: AI extraction with progress indicators
-- **Results Display**: Extracted data with edit/save options
+**For Returning Users (1+ invoices):**
+- **Dashboard First**: Overview of processed invoices and statistics
+- **Quick Access**: "Process New Invoice" prominent CTA
+- **Recent Activity**: Last processed invoices for quick access
 
-#### **Step 6: Navigation States**
-- **New Users**: Processing view → Dashboard (after first invoice)
-- **Experienced Users**: Dashboard ⇌ Processing (toggle between views)
-- **Logout**: Returns to registration landing page
+#### **Step 6: Enhanced Processing Experience**
+- **Side-by-Side Layout**: Upload area and results panel displayed horizontally
+- **Dynamic Upload State**: Preview-only mode after file selection (no more drag-and-drop UI)
+- **Loading Animations**: Modern skeleton loaders and progress indicators during processing
+- **Save State Management**: "Save to DB" button becomes "Saved" and disabled after successful save
+- **Real-time Feedback**: Progress updates, success notifications, error handling
 
-#### **Step 7: Session Management**
-- **Persistent Login**: JWT tokens with auto-refresh
-- **Logout Flow**: Clear session and return to registration page
-- **Session Expiry**: Graceful re-authentication prompts
+#### **Step 7: Dashboard Management**
+- **Tabular Interface**: Structured table view of processed invoices
+- **Thumbnail Previews**: Small image previews of original invoice files
+- **Key Information Display**:
+  - Invoice thumbnail
+  - Invoice number
+  - Processing confidence score
+  - Processing date
+  - Delete action icon
+- **Dynamic Metrics**: Storage usage updates automatically after deletions
+- **Responsive Design**: Mobile-friendly table with collapsible columns
+
+#### **Step 8: State Persistence**
+- **Browser Refresh Resilience**: User remains logged in across page refreshes
+- **Route Memory**: Returns to last active view (Processing/Dashboard)
+- **Form State Persistence**: Maintain form data during navigation
+- **Upload Progress Recovery**: Resume interrupted uploads where possible
 
 ## 🔧 Technical Requirements
 
-### Frontend Architecture (Enhanced Single File)
-- **File**: `static/index.html` (complete redesign with dark theme)
-- **Framework**: Vanilla JavaScript with Tailwind CSS
-- **Theme**: Dark theme with violet (#8B5CF6) accent colors
-- **State Management**: LocalStorage for JWT tokens and user session
-- **UI Components**: 
-  - Modal-based authentication (no page redirects)
-  - Contextual view switching (registration → processing → dashboard)
-  - Drag-and-drop file upload with progress indicators
-  - Responsive design for mobile and desktop
+### Frontend Architecture (Modern React Stack)
+- **Framework**: React 18 with Vite (not Create React App - deprecated)
+- **Styling**: Tailwind CSS with custom design system
+- **Build Tool**: Vite for fast development and optimized builds
+- **Routing**: React Router v6 for client-side navigation
+- **State Management**: 
+  - `useState` for local component state
+  - `useContext` for global state (authentication, theme)
+  - `localStorage` for persistence
+- **Project Structure** (Beginner-Friendly):
+  ```
+  frontend/
+    src/
+      components/     # Reusable UI components
+        ui/            # Basic UI elements (Button, Input, Modal)
+        layout/        # Layout components (Navbar, Footer)
+        forms/         # Form components
+      pages/           # Route-level components
+        Landing.jsx
+        Register.jsx
+        Login.jsx
+        Process.jsx
+        Dashboard.jsx
+      hooks/           # Custom React hooks
+      context/         # React Context providers
+      utils/           # Helper functions
+      App.jsx
+      main.jsx
+  ```
 
-### Backend Architecture (Enhanced with File Management)
-- **Existing Models**: UserModel, InvoiceModel with proper relationships
-- **File Storage**: Local `./uploads/[user_id]/` directory structure
-- **New API Endpoints**: 
-  - `GET /api/user/invoice-count` - Check if user has processed invoices
-  - `POST /api/files/upload` - Handle file upload to local storage
-  - Enhanced dashboard endpoints for contextual routing
-- **Enhanced Security**: JWT authentication, bcrypt password hashing, file access control
+### Component Architecture (Educational Patterns)
+- **Composition over Inheritance**: Small, reusable components
+- **Props and Children**: Clear data flow patterns
+- **Custom Hooks**: Reusable logic (useAuth, useLocalStorage)
+- **Conditional Rendering**: Simple state-based UI updates
+- **Error Boundaries**: Graceful error handling
 
-### File Management System
-- **Storage Location**: `./uploads/[user_id]/[timestamp]_[original_filename]`
-- **Access Control**: Users can only access their own uploaded files
-- **File Cleanup**: Automatic cleanup of old files (configurable retention)
-- **Supported Formats**: JPG, PNG, WEBP (existing validation)
-- **Size Limits**: 10MB per file (existing validation)
+### Backend Architecture (Enhanced API)
+- **Existing FastAPI Structure**: Maintain current modular backend
+- **File Storage**: Enhanced `./uploads/[user_id]/` with thumbnail generation
+- **New API Endpoints**:
+  - `GET /api/invoices/thumbnails/{invoice_id}` - Serve thumbnail images
+  - `POST /api/invoices/process-and-save` - Combined processing and saving
+  - Enhanced error responses with detailed validation messages
+- **CORS Configuration**: Proper setup for React development server
+
+### Design System
+- **Color Palette**: Professional SaaS-appropriate colors
+  - Primary: Modern blue (#3B82F6) or violet (#8B5CF6)
+  - Success: Green (#10B981)
+  - Warning: Amber (#F59E0B)
+  - Error: Red (#EF4444)
+  - Neutral: Gray scale (#F8FAFC to #1E293B)
+- **Typography**: Clean, readable font stack
+- **Spacing**: Consistent Tailwind spacing scale
+- **Components**: Reusable design tokens
+
+### Development Tools & Setup
+- **Package Manager**: npm or yarn
+- **Development Server**: Vite dev server with HMR
+- **Code Quality**: ESLint + Prettier configuration
+- **Git Hooks**: Pre-commit formatting and linting
+- **Environment Variables**: Separate dev/prod configurations
 
 ## 📋 Functional Requirements
 
-### 1. Landing Page Experience
-**Feature**: Registration-first landing page
-- **Default View**: Registration form prominently displayed
-- **Login Option**: "Already have an account? Login" link
-- **No Processing Access**: Invoice processing hidden until authenticated
-- **Dark Theme**: Professional dark background with violet accents
-- **Responsive**: Mobile-first design
+### 1. Production-Ready Landing Page
+**Feature**: SaaS marketing landing page with conversion focus
+- **Hero Section**:
+  - Compelling headline highlighting key value proposition
+  - Subheading explaining benefits ("Process invoices in seconds with AI")
+  - Prominent "Try for Free" CTA button
+  - Hero image/animation showing product in action
+- **Social Proof Section**:
+  - Client logos or testimonials
+  - Usage statistics ("10,000+ invoices processed")
+  - Trust badges and security certifications
+- **Feature Highlights**:
+  - 3-4 key features with icons and descriptions
+  - Sample invoice images or processing demonstrations
+  - Before/after comparisons
+- **Single Page Design**: Scrollable sections without complex navigation
+- **Minimal Header**: Logo + "Try for Free" + "Login" only
+- **Mobile Responsive**: Optimized for all device sizes
 
-### 2. Modal Authentication System
-**Feature**: Non-disruptive authentication flows
-- **Registration Modal**: 
-  - Username, email, password, optional full name
-  - Real-time validation feedback
-  - Auto-login on successful registration
-- **Login Modal**: 
-  - Username/email and password fields
-  - "Forgot password?" placeholder for future enhancement
-  - Clear error messaging
-- **Modal Behavior**: 
-  - Backdrop click to close
-  - ESC key support
-  - Focus management
-  - No page redirects
+### 2. Modern Registration System
+**Feature**: Dedicated registration page with professional UX
+- **Clean Form Design**: Modern input styling with labels and validation
+- **Required Fields**: Username, email, password, optional full name
+- **Real-time Validation**: Instant feedback for field errors
+- **Loading States**: Registration button transforms to loader during submission
+- **Success Notification**: Toast notification confirming account creation
+- **Auto-redirect**: Seamless transition to appropriate view post-registration
+- **Error Handling**: Clear, actionable error messages
+- **Accessibility**: Proper ARIA labels and keyboard navigation
 
-### 3. Contextual User Routing
-**Feature**: Intelligent post-authentication navigation
-- **New User Flow** (0 invoices):
-  - Direct to processing interface
-  - Welcome message with usage hints
-  - Clean, focused upload area
-- **Returning User Flow** (1+ invoices):
-  - Dashboard with invoice history
-  - "Process New Invoice" prominent button
-  - Quick access to recent invoices
+### 3. Modal Login System
+**Feature**: Overlay login modal for returning users
+- **Modal Trigger**: Accessible from landing page and registration page
+- **Simple Design**: Username/email and password fields only
+- **Single Action**: "Login" button only (ESC key to close modal)
+- **Loading State**: Button shows spinner during authentication
+- **Error Display**: Inline error messages for invalid credentials
+- **Backdrop Behavior**: Click outside to close, ESC key support
+- **Focus Management**: Automatic focus on username field when opened
 
-### 4. Enhanced File Management
-**Feature**: Local file storage with user isolation
-- **Upload Process**:
-  - Drag-and-drop with visual feedback
-  - Progress indicators during upload
-  - File validation (type, size)
-- **Storage Structure**: `./uploads/[user_id]/[timestamp]_[filename]`
-- **Access Control**: Users can only access their own files
-- **File Cleanup**: Configurable retention policies
+### 4. Authenticated Navigation System
+**Feature**: Professional navbar for authenticated users
+- **Layout**:
+  - **Left**: Logo and product name
+  - **Center**: "Process" and "Dashboard" navigation tabs
+  - **Right**: User avatar with dropdown menu
+- **Visibility**: Only shown after authentication (hidden on landing/auth pages)
+- **Sticky Behavior**: Fixed at top during scrolling
+- **Active States**: Clear indication of current view
+- **User Dropdown**: Profile info and logout option
+- **Responsive**: Collapsible menu for mobile devices
 
-### 5. Dark Theme UI System
-**Feature**: Modern dark interface with violet branding
-- **Color Palette**:
-  - Background: Dark gray (#1F2937)
-  - Cards/Panels: Darker gray (#111827)
-  - Primary Accent: Violet (#8B5CF6)
-  - Text: Light gray (#F9FAFB)
-  - Success: Green (#10B981)
-  - Error: Red (#EF4444)
-- **Interactive Elements**:
-  - Violet buttons for primary actions
-  - Hover states with subtle animations
-  - Focus indicators for accessibility
+### 5. Enhanced Processing Interface
+**Feature**: Side-by-side upload and results layout
+- **Desktop Layout**: Upload area and results panel displayed horizontally
+- **Mobile Layout**: Stacked vertically with smooth transitions
+- **Dynamic Upload States**:
+  - Initial: Drag-and-drop zone with instructions
+  - Selected: Image preview only (no more upload UI)
+  - Processing: Loading animations and progress indicators
+- **Modern Loading States**: Skeleton loaders for results panel during processing
+- **Save State Management**: "Save to DB" button becomes "Saved" and disabled after success
+- **Real-time Feedback**: Progress updates, notifications, error handling
 
-### 6. View State Management
-**Feature**: Seamless navigation between app states
-- **States**: Landing → Processing → Dashboard
-- **Navigation**: Context-aware routing based on user status
-- **Session Persistence**: Maintain state across browser sessions
-- **Logout Flow**: Return to landing/registration page
+### 6. Comprehensive Dashboard
+**Feature**: Tabular invoice management with rich data display
+- **Table Layout**: Structured display of processed invoices
+- **Column Structure**:
+  - Thumbnail preview of original invoice
+  - Invoice number (extracted)
+  - Processing confidence score
+  - Processing date/time
+  - Delete action icon
+- **Thumbnail Generation**: Automatic thumbnail creation for uploaded images
+- **Interactive Elements**: Hover states, click actions, confirmation dialogs
+- **Storage Metrics**: Dynamic updates after deletions
+- **Responsive Table**: Mobile-friendly with collapsible columns
+- **Empty States**: Helpful messaging when no invoices exist
 
-### 7. Enhanced Dashboard
-**Feature**: Comprehensive invoice management
-- **Statistics Cards**: Total invoices, recent activity, success rate
-- **Invoice History**: Paginated table with search/filter
-- **Quick Actions**: View, delete, re-process invoices
-- **File Access**: Download original uploaded files
-- **Process More**: Prominent call-to-action for new invoices
+### 7. State Persistence System
+**Feature**: Maintain user state across browser sessions
+- **Authentication Persistence**: JWT token storage in localStorage
+- **Route Memory**: Remember last active view (Process/Dashboard)
+- **Form State**: Preserve form data during navigation
+- **Upload Recovery**: Resume interrupted uploads where possible
+- **Theme Persistence**: Remember user preferences
+- **Error Recovery**: Graceful handling of expired sessions
+
+### 8. Responsive Design System
+**Feature**: Mobile-first responsive design
+- **Breakpoints**: Mobile (sm), Tablet (md), Desktop (lg), Large (xl)
+- **Layout Adaptations**:
+  - Mobile: Stacked layouts, full-width components
+  - Tablet: Hybrid layouts, collapsible navigation
+  - Desktop: Side-by-side layouts, full feature set
+- **Touch Interactions**: Optimized for touch devices
+- **Performance**: Optimized images and lazy loading
 
 ## 🎨 User Experience Design
 
@@ -241,55 +341,158 @@ Based on analysis of modern document processing applications (Expensify, Dext, D
 - **Forms**: Dark inputs with violet focus rings
 - **Navigation**: Minimal dark header with violet accents
 
-### Enhanced Frontend Structure
-```html
-<!-- Dark Theme index.html with Registration-First Flow -->
-<body class="bg-primary text-primary">
-  <!-- Minimal Header -->
-  <header class="bg-secondary border-b border-primary">
-    <div class="container mx-auto px-4 py-3">
-      <h1 class="text-xl font-bold text-accent-primary">Invoice Parser</h1>
+### React Component Architecture (Beginner-Friendly)
+
+#### Component Hierarchy
+```jsx
+// App.jsx - Main application component
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/process" element={<ProtectedRoute><Process /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        </Routes>
+        <LoginModal />
+        <NotificationSystem />
+      </Router>
+    </AuthProvider>
+  );
+}
+```
+
+#### Key Components Structure
+```jsx
+// Landing.jsx - Marketing landing page
+function Landing() {
+  return (
+    <div className="min-h-screen">
+      <HeroSection />
+      <FeatureSection />
+      <SocialProofSection />
+      <CTASection />
     </div>
-  </header>
-  
-  <!-- Main Application States -->
-  <div id="app-container" class="min-h-screen">
-    
-    <!-- Landing/Registration View (Default) -->
-    <div id="landing-view" class="app-view">
-      <!-- Registration form with login option -->
-      <div class="registration-form bg-secondary">
-        <!-- Dark themed registration interface -->
+  );
+}
+
+// Layout/Navbar.jsx - Authenticated navigation
+function Navbar({ user, onLogout }) {
+  return (
+    <nav className="sticky top-0 bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <Logo />
+          <NavTabs />
+          <UserDropdown user={user} onLogout={onLogout} />
+        </div>
       </div>
+    </nav>
+  );
+}
+
+// Process.jsx - Side-by-side processing interface
+function Process() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
+      <UploadPanel />
+      <ResultsPanel />
     </div>
-    
-    <!-- Processing View (New Users) -->
-    <div id="processing-view" class="app-view hidden">
-      <!-- Dark themed upload interface -->
-      <div class="upload-area bg-secondary border-accent-primary">
-        <!-- Drag-and-drop with violet accents -->
-      </div>
+  );
+}
+
+// Dashboard.jsx - Tabular invoice management
+function Dashboard() {
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <DashboardHeader />
+      <StatsCards />
+      <InvoiceTable />
     </div>
-    
-    <!-- Dashboard View (Returning Users) -->
-    <div id="dashboard-view" class="app-view hidden">
-      <!-- Dark themed dashboard with violet highlights -->
-      <div class="dashboard-grid">
-        <!-- Statistics cards, invoice history -->
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal Overlays with Dark Theme -->
-  <div id="auth-modals" class="modal-container">
-    <div id="login-modal" class="modal bg-secondary">
-      <!-- Dark themed login form -->
-    </div>
-    <div id="register-modal" class="modal bg-secondary">
-      <!-- Dark themed registration form -->
-    </div>
-  </div>
-</body>
+  );
+}
+```
+
+#### Custom Hooks (Educational Patterns)
+```jsx
+// hooks/useAuth.js - Authentication state management
+function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+}
+
+// hooks/useLocalStorage.js - Persistent state management
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  const setValue = (value) => {
+    try {
+      setStoredValue(value);
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error(`Error saving to localStorage:`, error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
+```
+
+#### Context Providers (State Management)
+```jsx
+// context/AuthContext.jsx - Global authentication state
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useLocalStorage('authToken', null);
+
+  const login = async (credentials) => {
+    setLoading(true);
+    try {
+      const response = await api.login(credentials);
+      setUser(response.user);
+      setToken(response.token);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    isAuthenticated: !!user
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
 ```
 
 ### User Flow
@@ -449,65 +652,129 @@ POST /api/save-invoice
 
 ## 🎯 Implementation Phases
 
-### Phase 1: Backend Enhancements (2 hours)
-1. **File Management**: 
-   - Create `./uploads` directory structure
-   - Implement user-specific file storage
-   - Add file access control and cleanup
-2. **New API Endpoints**: 
-   - User context endpoints (`/api/user/invoice-count`, `/api/user/status`)
-   - File management endpoints (`/api/files/*`)
-   - Enhanced dashboard endpoints with file references
-3. **Database Updates**:
-   - Add file reference fields to invoice model
-   - Create file metadata tracking
-   - Update existing endpoints for file association
+### Phase 1: React Project Setup & Architecture (2-3 hours)
+1. **Project Initialization**:
+   - Create React project with Vite
+   - Configure Tailwind CSS with custom design system
+   - Set up project structure (components, pages, hooks, context)
+   - Install and configure React Router, ESLint, Prettier
+2. **Development Environment**:
+   - Configure Vite for development and production builds
+   - Set up environment variables for API endpoints
+   - Configure CORS for backend integration
+   - Establish Git workflow and commit hooks
+3. **Component Foundation**:
+   - Create base UI components (Button, Input, Modal, Loading)
+   - Implement layout components (Navbar, Footer, Container)
+   - Set up React Context for authentication and global state
+   - Create custom hooks for common functionality
 
-### Phase 2: Frontend Complete Redesign (2.5 hours)
-1. **Dark Theme Implementation**:
-   - Complete color palette overhaul
-   - Violet accent color system
-   - Responsive dark theme components
-2. **Landing Page Redesign**:
-   - Registration-first interface
-   - Modal-based authentication
-   - Remove all processing UI from unauthenticated view
-3. **Contextual Routing System**:
-   - New user → processing flow
-   - Returning user → dashboard flow
-   - Seamless view transitions
-4. **Enhanced File Upload**:
-   - Improved drag-and-drop interface
-   - Progress indicators and feedback
-   - Local file management integration
+### Phase 2: Landing Page & Marketing (2-3 hours)
+1. **Hero Section**:
+   - Design compelling headline and value proposition
+   - Implement "Try for Free" CTA with smooth scrolling
+   - Add hero image/animation showcasing product
+   - Create responsive layout for all device sizes
+2. **Content Sections**:
+   - Feature highlights with icons and descriptions
+   - Social proof section (testimonials, stats, logos)
+   - Sample invoice demonstrations or screenshots
+   - Trust badges and security certifications
+3. **Conversion Optimization**:
+   - A/B test different CTA placements and copy
+   - Implement analytics tracking for user interactions
+   - Optimize page load performance
+   - Mobile-first responsive design
 
-### Phase 3: User Experience Polish (1 hour)
-1. **Modal System**:
+### Phase 3: Authentication System (2 hours)
+1. **Registration Page**:
+   - Modern form design with validation
+   - Loading states and success notifications
+   - Error handling and user feedback
+   - Auto-redirect to appropriate view
+2. **Login Modal**:
+   - Overlay modal with backdrop behavior
+   - Single-action design (Login button only)
+   - Loading states and error handling
+   - Focus management and accessibility
+3. **Authentication Context**:
+   - JWT token management with localStorage
+   - Automatic session persistence
+   - Route protection and redirection
+   - User state management across components
+
+### Phase 4: Navigation & Routing (1 hour)
+1. **Authenticated Navbar**:
+   - Logo, navigation tabs, and user dropdown
+   - Sticky positioning and responsive behavior
+   - Active state management
+   - User avatar and profile integration
+2. **Route Management**:
+   - Protected routes for authenticated users
+   - Contextual routing based on user status
+   - Browser history management
+   - Deep linking support
+
+### Phase 5: Processing Interface Redesign (3 hours)
+1. **Layout Enhancement**:
+   - Side-by-side upload and results panels
+   - Responsive layout for mobile devices
+   - Dynamic state transitions
+   - Smooth animations between states
+2. **Upload Experience**:
+   - Drag-and-drop with visual feedback
+   - File preview after selection
+   - Progress indicators and loading states
+   - Error handling and validation
+3. **Results Display**:
+   - Skeleton loaders during processing
+   - Formatted JSON display with syntax highlighting
+   - Action buttons (Copy, Download, Save)
+   - Save state management and notifications
+
+### Phase 6: Dashboard Implementation (3 hours)
+1. **Table Interface**:
+   - Responsive table with invoice data
+   - Thumbnail generation and display
+   - Sortable columns and pagination
+   - Mobile-friendly collapsible design
+2. **Data Management**:
+   - CRUD operations for invoice records
+   - Confirmation dialogs for destructive actions
+   - Real-time updates after operations
+   - Storage metrics calculation
+3. **Empty States**:
+   - Helpful messaging for new users
+   - Call-to-action buttons
+   - Onboarding guidance
+
+### Phase 7: Polish & Optimization (2 hours)
+1. **Performance Optimization**:
+   - Code splitting and lazy loading
+   - Image optimization and caching
+   - Bundle size optimization
+   - Loading performance improvements
+2. **User Experience Polish**:
+   - Micro-interactions and animations
+   - Toast notifications system
+   - Error boundaries and fallback UI
    - Accessibility improvements
-   - Keyboard navigation
-   - Focus management
-2. **Animation & Transitions**:
-   - Smooth view transitions
-   - Loading states
-   - Micro-interactions
-3. **Mobile Optimization**:
-   - Touch-friendly interfaces
-   - Responsive modal behavior
-   - Mobile file upload handling
+3. **Cross-browser Testing**:
+   - Chrome, Firefox, Safari, Edge compatibility
+   - Mobile device testing
+   - Performance testing across devices
 
-### Phase 4: Testing & Validation (30 minutes)
-1. **User Journey Testing**:
-   - Complete registration → processing → dashboard flow
-   - File upload and storage validation
+### Phase 8: Integration & Testing (1-2 hours)
+1. **Backend Integration**:
+   - API endpoint integration
+   - Error handling and retry logic
+   - File upload and processing flows
+   - Authentication token management
+2. **End-to-End Testing**:
+   - User journey validation
    - Cross-browser compatibility
-2. **Security Validation**:
-   - File access control testing
-   - User data isolation verification
-   - Authentication flow security
-3. **Performance Testing**:
-   - File upload performance
-   - Dark theme rendering
    - Mobile responsiveness
+   - Performance benchmarking
 
 ## 🧪 Testing Requirements
 
@@ -597,47 +864,119 @@ POST /api/save-invoice
 ## 📋 Acceptance Criteria
 
 ### Must Have (MVP)
-- [ ] **Registration-First Landing**: Default page shows registration form
-- [ ] **Modal Authentication**: Login/register in overlay modals (no page redirects)
-- [ ] **Dark Theme UI**: Complete dark interface with violet (#8B5CF6) accents
-- [ ] **Contextual User Routing**: 
-  - New users (0 invoices) → Processing view
-  - Returning users (1+ invoices) → Dashboard view
-- [ ] **Local File Storage**: Files saved to `./uploads/[user_id]/` structure
-- [ ] **Enhanced File Upload**: Drag-and-drop with progress indicators
-- [ ] **User Data Isolation**: Users can only access their own files and data
-- [ ] **Session Management**: JWT tokens with persistent login
+- [ ] **Production-Ready Landing Page**: 
+  - Hero section with compelling value proposition
+  - "Try for Free" CTA prominently displayed
+  - Social proof elements (testimonials, logos, stats)
+  - Single-page scrollable design
+  - Mobile-responsive layout
+- [ ] **React + Vite + Tailwind Architecture**:
+  - Modern React 18 with Vite build tool
+  - Tailwind CSS with custom design system
+  - Beginner-friendly component structure
+  - Proper separation of concerns
+- [ ] **Enhanced Registration System**:
+  - Dedicated registration page (not modal)
+  - Modern form elements with validation
+  - Loading button states during submission
+  - Success notifications and auto-redirect
+- [ ] **Modal Login System**:
+  - Overlay modal accessible from landing page
+  - Single "Login" button (ESC to close)
+  - Loading states and error handling
+- [ ] **Authenticated Navigation**:
+  - Navbar with logo, tabs (Process/Dashboard), user dropdown
+  - Sticky positioning, responsive design
+  - Active state management
+- [ ] **Side-by-Side Processing Interface**:
+  - Upload and results panels displayed horizontally
+  - Dynamic states (upload → preview → processing → results)
+  - Modern loading animations and skeleton loaders
+  - "Save to DB" button state management
+- [ ] **Tabular Dashboard**:
+  - Table layout with invoice thumbnails
+  - Display: thumbnail, invoice number, confidence, delete action
+  - Dynamic storage metrics updates
+  - Mobile-responsive table design
+- [ ] **State Persistence**:
+  - User authentication across browser refreshes
+  - Route memory and form state preservation
+  - localStorage integration
 
 ### Should Have
-- [ ] **Responsive Design**: Mobile-first dark theme interface
-- [ ] **File Management**: Download original files, file cleanup
-- [ ] **Enhanced Dashboard**: Statistics cards, search/filter, pagination
-- [ ] **Error Handling**: Clear validation and error messages in dark theme
-- [ ] **Accessibility**: Keyboard navigation, focus management, screen reader support
-- [ ] **Performance**: Fast file uploads, smooth animations, optimized rendering
-- [ ] **User Experience**: 
-  - Welcome messages for new users
-  - Contextual navigation hints
-  - Smooth view transitions
+- [ ] **Advanced UX Polish**:
+  - Smooth animations and micro-interactions
+  - Toast notification system
+  - Error boundaries and fallback UI
+  - Loading states for all async operations
+- [ ] **Responsive Design Excellence**:
+  - Mobile-first approach with touch optimization
+  - Tablet and desktop layout adaptations
+  - Collapsible navigation for mobile
+  - Optimized images and performance
+- [ ] **Accessibility Compliance**:
+  - ARIA labels and keyboard navigation
+  - Screen reader compatibility
+  - Focus management in modals
+  - Color contrast compliance
+- [ ] **Performance Optimization**:
+  - Code splitting and lazy loading
+  - Bundle size optimization
+  - Image optimization and caching
+  - Fast page load times (<2 seconds)
+- [ ] **Error Handling & Recovery**:
+  - Graceful API error handling
+  - Network failure recovery
+  - Form validation with clear messaging
+  - Session expiry handling
 
 ### Could Have (Future Enhancements)
-- [ ] **File Retention Policies**: Automatic cleanup of old files
-- [ ] **Bulk Operations**: Multi-file upload and processing
-- [ ] **Advanced Search**: Full-text search across invoice content
-- [ ] **Export Features**: Bulk data export, PDF reports
-- [ ] **Email Integration**: Email-to-upload functionality
-- [ ] **API Rate Limiting**: Enhanced security for file uploads
-- [ ] **User Profile Management**: Avatar upload, profile editing
-- [ ] **Password Reset**: Email-based password recovery
+- [ ] **Advanced Landing Page Features**:
+  - A/B testing for different CTAs
+  - Analytics integration
+  - Interactive product demos
+  - Customer testimonial carousels
+- [ ] **Enhanced File Management**:
+  - Thumbnail generation and caching
+  - Bulk operations (multi-select, delete)
+  - File organization and tagging
+  - Advanced search and filtering
+- [ ] **User Experience Enhancements**:
+  - Dark/light theme toggle
+  - User profile management
+  - Keyboard shortcuts
+  - Drag-and-drop file reordering
+- [ ] **Integration Features**:
+  - Email notifications
+  - Webhook integrations
+  - API for third-party access
+  - Export to accounting software
 
 ### Technical Acceptance Criteria
-- [ ] **File Security**: Users cannot access other users' files via URL manipulation
-- [ ] **Storage Efficiency**: Proper file organization and cleanup mechanisms
-- [ ] **Theme Consistency**: All UI elements follow dark theme design system
-- [ ] **Modal Behavior**: Proper focus management, ESC key support, backdrop clicks
-- [ ] **Error Recovery**: Graceful handling of network issues, file upload failures
-- [ ] **Cross-Browser**: Works in Chrome, Firefox, Safari, Edge
-- [ ] **Mobile Responsiveness**: Touch-friendly interface, proper viewport handling
+- [ ] **Code Quality**:
+  - ESLint and Prettier configuration
+  - Consistent component patterns
+  - Proper error boundaries
+  - Type checking (optional: TypeScript migration path)
+- [ ] **Security**:
+  - Secure JWT token handling
+  - File access control validation
+  - XSS and CSRF protection
+  - Input sanitization
+- [ ] **Performance**:
+  - Lighthouse score >90 for performance
+  - First Contentful Paint <1.5s
+  - Largest Contentful Paint <2.5s
+  - Cumulative Layout Shift <0.1
+- [ ] **Cross-Browser Compatibility**:
+  - Chrome, Firefox, Safari, Edge support
+  - Mobile Safari and Chrome mobile
+  - Graceful degradation for older browsers
+- [ ] **Educational Value**:
+  - Well-documented component patterns
+  - Clear separation of concerns
+  - Beginner-friendly code structure
+  - Comments explaining complex logic
 
 ## 📞 Stakeholder Sign-off
 
@@ -675,29 +1014,110 @@ JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-**Document Status**: ✅ Updated with Enhanced UX Requirements  
-**Next Step**: Begin Phase 1 - Backend File Management & API Enhancements
+**Document Status**: ✅ Updated with Production-Ready React Requirements  
+**Next Step**: Begin Phase 1 - React Project Setup & Architecture
 
 ---
 
 ## 🕰️ Change Log
 
-### Version 2.0 Updates (December 2024)
-- **Added**: Registration-first landing page requirement
-- **Added**: Dark theme with violet accent color specifications
-- **Added**: Local file storage system (`./uploads` directory)
-- **Added**: Contextual user routing (new vs returning users)
-- **Added**: Modal-based authentication (no page redirects)
-- **Added**: Enhanced file management APIs
-- **Added**: Comprehensive dark theme design system
-- **Updated**: User journey flow with detailed step-by-step requirements
-- **Updated**: Technical architecture for file storage and theme system
-- **Updated**: Implementation phases to reflect enhanced scope
-- **Research**: Incorporated best practices from Expensify, Dext, DocuSign analysis
+### Version 3.0 Updates (December 2024)
+- **Major**: Complete rewrite to React + Vite + Tailwind CSS architecture
+- **Added**: Production-ready SaaS landing page with conversion focus
+- **Added**: Hero section, social proof, and "Try for Free" CTA design
+- **Added**: Side-by-side processing interface (upload + results)
+- **Added**: Tabular dashboard with invoice thumbnails
+- **Added**: Authenticated navbar with sticky positioning
+- **Added**: Modern loading states, notifications, and micro-interactions
+- **Added**: State persistence across browser sessions
+- **Added**: Beginner-friendly React patterns for educational purposes
+- **Updated**: User journey to include marketing landing page
+- **Updated**: Technical architecture to modern React stack
+- **Updated**: Implementation phases to reflect React development
+- **Research**: Incorporated SaaS landing page best practices from DocuSign, PandaDoc, Expensify
 
 ### Key Architectural Changes
-1. **Frontend**: Complete dark theme redesign with registration-first approach
-2. **Backend**: Local file storage system with user-specific directories
-3. **UX Flow**: Intelligent routing based on user experience level
-4. **Authentication**: Modal-based, non-disruptive auth flows
-5. **File Management**: Enhanced upload, storage, and access control systems
+1. **Frontend**: Complete migration from vanilla JS to React + Vite + Tailwind
+2. **Landing Page**: Professional SaaS marketing page with conversion optimization
+3. **UX Flow**: Marketing → Registration → Processing/Dashboard with persistent state
+4. **Component Architecture**: Educational React patterns with composition and hooks
+5. **Design System**: Modern, accessible, mobile-first responsive design
+6. **Development**: Beginner-friendly codebase suitable for teaching React concepts
+
+### Version 2.0 Legacy (Implemented)
+- ✓ Registration-first approach
+- ✓ Dark theme with violet accents
+- ✓ Local file storage system
+- ✓ Contextual user routing
+- ✓ Modal-based authentication
+- ✓ Enhanced file management APIs
+- ✓ User data isolation and security
+
+---
+
+## 📝 Specific Implementation Requirements
+
+### Landing Page Specifications
+- **Hero Section**: Compelling headline with "Process invoices in seconds with AI-powered OCR"
+- **Value Proposition**: Clear benefits over features ("Reduce manual data entry by 95%")
+- **CTA Button**: Prominent "Try for Free" button with contrasting color
+- **Social Proof**: Client logos, testimonials, or usage statistics
+- **Product Demo**: Sample invoice images or processing animations
+- **Trust Signals**: Security badges, compliance certifications
+- **Single Page**: Scrollable sections without complex navigation
+- **Mobile Optimized**: Touch-friendly, fast loading, responsive design
+
+### Registration Page Enhancements
+- **Loading States**: Button transforms to spinner during submission
+- **Success Flow**: Toast notification + auto-redirect to appropriate view
+- **Modern Forms**: Contemporary styling with floating labels and validation
+- **Error Handling**: Real-time validation with clear, actionable messages
+- **Accessibility**: Proper ARIA labels and keyboard navigation
+
+### Login Modal Specifications
+- **Single Action**: Only "Login" button (ESC key to close)
+- **Loading State**: Button shows spinner during authentication
+- **Focus Management**: Auto-focus on username field when opened
+- **Error Display**: Inline error messages with clear styling
+- **Backdrop Behavior**: Click outside to close, smooth animations
+
+### Navbar Requirements
+- **Layout**: Logo (left) + Navigation tabs (center) + User dropdown (right)
+- **Visibility**: Hidden on landing/auth pages, visible on Process/Dashboard
+- **Sticky Behavior**: Fixed at top during scrolling
+- **Active States**: Clear indication of current view (Process/Dashboard)
+- **User Dropdown**: Profile info, settings placeholder, logout option
+- **Responsive**: Collapsible hamburger menu for mobile
+
+### Processing Interface Specifications
+- **Layout**: Side-by-side upload and results panels (desktop)
+- **Upload States**: 
+  - Initial: Drag-and-drop zone with instructions
+  - Selected: Image preview only (hide upload UI)
+  - Processing: Loading animations and progress bars
+- **Results Panel**: Skeleton loaders during processing
+- **Save Button**: "Save to DB" becomes "Saved" and disabled after success
+- **Mobile Layout**: Stacked vertically with smooth transitions
+
+### Dashboard Table Requirements
+- **Columns**: Thumbnail, Invoice Number, Confidence Score, Date, Actions
+- **Thumbnails**: Generated from uploaded invoice images
+- **Actions**: Delete icon with confirmation dialog
+- **Storage Metrics**: Real-time updates after deletions
+- **Responsive**: Collapsible columns for mobile devices
+- **Empty State**: Helpful messaging with CTA for new users
+- **Loading State**: Skeleton rows during data fetching
+
+### State Persistence Specifications
+- **Authentication**: JWT token in localStorage with auto-refresh
+- **Route Memory**: Return to last active view after browser refresh
+- **Form State**: Preserve form data during navigation
+- **Upload Recovery**: Resume interrupted uploads where possible
+- **Error Recovery**: Graceful session expiry handling
+
+### Performance Requirements
+- **Page Load**: <2 seconds for initial load
+- **Bundle Size**: <500KB gzipped
+- **Code Splitting**: Lazy load routes and heavy components
+- **Image Optimization**: WebP format with fallbacks
+- **Caching**: Proper cache headers for static assets

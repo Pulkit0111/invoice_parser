@@ -62,7 +62,7 @@ async def upload_file(
         # Save file
         file_id, file_info = await file_service.save_uploaded_file(file, str(current_user.id))
         
-        logger.info(f"File uploaded by {current_user.username}: {file_id}")
+        logger.info(f"File uploaded by {current_user.email}: {file_id}")
         
         return {
             "success": True,
@@ -114,7 +114,7 @@ async def download_file(
         # Extract original filename for download
         filename = file_path.name
         
-        logger.info(f"File downloaded by {current_user.username}: {file_id}")
+        logger.info(f"File downloaded by {current_user.email}: {file_id}")
         
         return FileResponse(
             path=str(file_path),
@@ -159,7 +159,7 @@ async def delete_file(
                 detail="File not found or access denied"
             )
         
-        logger.info(f"File deleted by {current_user.username}: {file_id}")
+        logger.info(f"File deleted by {current_user.email}: {file_id}")
         
         return {
             "success": True,

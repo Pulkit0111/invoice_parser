@@ -36,12 +36,12 @@ async def register_user(
         
         # Auto-login after registration
         login_data = UserLoginSchema(
-            username=user_data.username,
+            email=user_data.email,
             password=user_data.password
         )
         token_response = auth_service.login_user(login_data)
         
-        logger.info(f"User registered and logged in: {user.username}")
+        logger.info(f"User registered and logged in: {user.email}")
         return token_response
         
     except ValueError as e:
@@ -68,18 +68,18 @@ async def login_user(
     """
     try:
         token_response = auth_service.login_user(login_data)
-        logger.info(f"User logged in: {login_data.username}")
+        logger.info(f"User logged in: {login_data.email}")
         return token_response
         
     except ValueError as e:
-        logger.warning(f"Login failed for {login_data.username}: {e}")
+        logger.warning(f"Login failed for {login_data.email}: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"}
         )
     except Exception as e:
-        logger.error(f"Login error for {login_data.username}: {e}")
+        logger.error(f"Login error for {login_data.email}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed due to server error"
@@ -106,11 +106,11 @@ async def get_current_user_profile(
         
         return UserSchema(
             id=str(user.id),
-            username=user.username,
+            name=user.name,
             email=user.email,
-            full_name=user.full_name,
+            
             is_active=user.is_active,
-            created_at=user.created_at.isoformat()
+            
         )
         
     except HTTPException:
@@ -144,7 +144,7 @@ async def logout_user(
                 detail="Invalid or expired token"
             )
         
-        logger.info(f"User logged out: {user.username}")
+        logger.info(f"User logged out: {user.email}")
         
         return {
             "message": "Logged out successfully",

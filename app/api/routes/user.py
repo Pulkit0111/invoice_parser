@@ -41,14 +41,14 @@ async def get_user_invoice_count(
         else:
             recommended_view = "dashboard"
         
-        logger.info(f"User {current_user.username} has {invoice_count} invoices, recommending {recommended_view}")
+        logger.info(f"User {current_user.email} has {invoice_count} invoices, recommending {recommended_view}")
         
         return {
             "count": invoice_count,
             "has_invoices": invoice_count > 0,
             "recommended_view": recommended_view,
             "user_id": str(current_user.id),
-            "username": current_user.username
+            "username": current_user.email
         }
         
     except Exception as e:
@@ -91,7 +91,7 @@ async def get_user_status(
             "recommended_view": recommended_view,
             "user_info": {
                 "id": str(current_user.id),
-                "username": current_user.username,
+                "username": current_user.email,
                 "full_name": current_user.full_name,
                 "member_since": member_since
             },
@@ -103,7 +103,7 @@ async def get_user_status(
             "recent_invoices": recent_invoices[:3] if recent_invoices else []  # Show last 3 for quick access
         }
         
-        logger.info(f"User status for {current_user.username}: new_user={is_new_user}, view={recommended_view}")
+        logger.info(f"User status for {current_user.email}: new_user={is_new_user}, view={recommended_view}")
         return response_data
         
     except Exception as e:

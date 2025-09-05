@@ -20,9 +20,8 @@ class UserModel(Base):
     __tablename__ = "users"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username = Column(String(100), unique=True, nullable=False)
+    name = Column(String(200), nullable=False)  # Full name of the user
     email = Column(String(320), unique=True, nullable=False)
-    full_name = Column(String(200), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -32,7 +31,7 @@ class UserModel(Base):
     invoices = relationship("InvoiceModel", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
+        return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"
 
 
 class AddressType(enum.Enum):
@@ -178,5 +177,4 @@ Index('idx_invoices_user', InvoiceModel.user_id)
 Index('idx_companies_gstin', CompanyModel.gstin)
 Index('idx_line_items_invoice', LineItemModel.invoice_id)
 Index('idx_addresses_company', AddressModel.company_id)
-Index('idx_users_username', UserModel.username)
 Index('idx_users_email', UserModel.email)
