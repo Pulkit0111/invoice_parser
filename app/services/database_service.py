@@ -6,8 +6,13 @@ including CRUD operations and business logic for data storage.
 """
 import logging
 from typing import Optional, Any
+import os
+from pathlib import Path
+import uuid
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy import func, and_, or_
 
 from app.core.database import get_db_session
 from app.models.database import (
@@ -22,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 class DatabaseService:
     """Service for database operations."""
+    
+    def generate_default_invoice_number(self) -> str:
+        """Generate a default invoice number in format ip-{uuid}."""
+        return f"ip-{str(uuid.uuid4())[:8]}"
     
     def check_duplicate_invoice(self, invoice_number: str) -> bool:
         """Check if invoice number already exists in database."""
@@ -40,7 +49,12 @@ class DatabaseService:
     
     def get_or_create_company(self, session, company_info: Any) -> Optional[CompanyModel]:
         """Get existing company or create new one."""
-        if not company_info or not company_info.company_name:
+        if not company_info:
+            return None
+        
+        # Handle case where company_name might be missing or empty
+        company_name = getattr(company_info, 'company_name', None)
+        if not company_name or company_name.strip() == "":
             return None
         
         try:
@@ -53,19 +67,21 @@ class DatabaseService:
                     return existing
             
             # If no GSTIN match, try by company name
-            existing = query.filter(CompanyModel.company_name == company_info.company_name).first()
+            existing = query.filter(CompanyModel.company_name == company_name).first()
             if existing:
                 return existing
             
             # Create new company
+            logger.info(f"Creating new company: {company_name}")
             company = CompanyModel(
-                company_name=company_info.company_name,
+                company_name=company_name,
                 gstin=getattr(company_info, 'gstin', None),
                 phone=getattr(company_info, 'phone', None),
                 email=getattr(company_info, 'email', None)
             )
             session.add(company)
             session.flush()  # Get the ID without committing
+            logger.info(f"Successfully created company with ID: {company.id}")
             
             # Add address if provided
             if hasattr(company_info, 'address') and company_info.address:
@@ -98,26 +114,32 @@ class DatabaseService:
             Dictionary with success status and details
         """
         try:
-            # Check for duplicate first
-            if invoice_data.invoice_number:
-                if self.check_duplicate_invoice(invoice_data.invoice_number):
-                    return {
-                        "success": False,
-                        "duplicate": True,
-                        "message": f"Invoice {invoice_data.invoice_number} already exists in database",
-                        "error": "Duplicate invoice number"
-                    }
+            # Generate invoice number if missing for duplicate check
+            invoice_number = invoice_data.invoice_number or self.generate_default_invoice_number()
+            
+            # Check for duplicate
+            if self.check_duplicate_invoice(invoice_number):
+                return {
+                    "success": False,
+                    "duplicate": True,
+                    "message": f"Invoice {invoice_number} already exists in database",
+                    "error": "Duplicate invoice number"
+                }
             
             with get_db_session() as session:
                 # Get or create vendor company
+                logger.info(f"Processing vendor information: {invoice_data.vendor_information}")
                 vendor = self.get_or_create_company(session, invoice_data.vendor_information)
+                logger.info(f"Vendor result: {vendor.company_name if vendor else 'None'}")
                 
                 # Get or create customer company
+                logger.info(f"Processing customer information: {invoice_data.customer_information}")
                 customer = self.get_or_create_company(session, invoice_data.customer_information)
+                logger.info(f"Customer result: {customer.company_name if customer else 'None'}")
                 
-                # Create invoice record
+                # Create invoice record (invoice_number already generated above)
                 invoice = InvoiceModel(
-                    invoice_number=invoice_data.invoice_number,
+                    invoice_number=invoice_number,
                     invoice_date=invoice_data.invoice_date,
                     due_date=invoice_data.due_date,
                     currency=invoice_data.currency,
@@ -127,6 +149,8 @@ class DatabaseService:
                     qr_code_data=invoice_data.qr_code_data,
                     extraction_confidence=invoice_data.extraction_confidence or "medium",
                     raw_text=invoice_data.raw_text,
+                    original_file_id=invoice_data.original_file_id,
+                    original_filename=invoice_data.original_filename,
                     vendor_id=vendor.id if vendor else None,
                     customer_id=customer.id if customer else None,
                     user_id=user_id
@@ -237,19 +261,24 @@ class DatabaseService:
             }
     
     def get_user_invoices(self, user_id: str, page: int = 1, limit: int = 10) -> dict[str, Any]:
-        """Get invoices for a specific user with pagination."""
+        """Get invoices for a specific user with pagination and optimized loading."""
         try:
             with get_db_session() as session:
                 # Calculate offset
                 offset = (page - 1) * limit
                 
-                # Get total count
-                total = session.query(InvoiceModel).filter(
+                # Optimized count query using index
+                total = session.query(func.count(InvoiceModel.id)).filter(
                     InvoiceModel.user_id == user_id
-                ).count()
+                ).scalar()
                 
-                # Get paginated invoices
-                invoices = session.query(InvoiceModel).filter(
+                # Get paginated invoices with eager loading of related data
+                invoices = session.query(InvoiceModel).options(
+                    joinedload(InvoiceModel.vendor),
+                    joinedload(InvoiceModel.customer),
+                    selectinload(InvoiceModel.line_items),
+                    joinedload(InvoiceModel.tax_calculation)
+                ).filter(
                     InvoiceModel.user_id == user_id
                 ).order_by(InvoiceModel.created_at.desc()).offset(offset).limit(limit).all()
                 
@@ -263,7 +292,13 @@ class DatabaseService:
                         "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
                         "currency": invoice.currency,
                         "extraction_confidence": invoice.extraction_confidence,
-                        "created_at": invoice.created_at.isoformat()
+                        "original_file_id": invoice.original_file_id,
+                        "original_filename": invoice.original_filename,
+                        "created_at": invoice.created_at.isoformat(),
+                        "vendor_name": invoice.vendor.company_name if invoice.vendor else "Unknown Vendor",
+                        "customer_name": invoice.customer.company_name if invoice.customer else "Unknown Customer",
+                        "line_items_count": len(invoice.line_items) if invoice.line_items else 0,
+                        "has_tax_calculation": invoice.tax_calculation is not None
                     })
                 
                 return {
@@ -284,7 +319,7 @@ class DatabaseService:
             }
     
     def delete_user_invoice(self, user_id: str, invoice_id: str) -> dict[str, Any]:
-        """Delete a specific invoice for a user."""
+        """Delete a specific invoice for a user and clean up associated files."""
         try:
             with get_db_session() as session:
                 invoice = session.query(InvoiceModel).filter(
@@ -298,8 +333,23 @@ class DatabaseService:
                         "message": "Invoice not found or access denied"
                     }
                 
+                # Store file information for cleanup before deleting
+                file_id = invoice.original_file_id
+                
+                # Delete invoice from database (cascade will handle related records)
                 session.delete(invoice)
                 session.commit()
+                
+                # Clean up associated file if it exists
+                if file_id:
+                    try:
+                        file_path = Path("uploads") / file_id
+                        if file_path.exists():
+                            os.remove(file_path)
+                            logger.info(f"Deleted file: {file_path}")
+                    except Exception as file_error:
+                        logger.warning(f"Failed to delete file {file_id}: {file_error}")
+                        # Don't fail the whole operation if file cleanup fails
                 
                 logger.info(f"Deleted invoice {invoice_id} for user {user_id}")
                 
@@ -314,4 +364,111 @@ class DatabaseService:
                 "success": False,
                 "message": "Failed to delete invoice",
                 "error": str(e)
+            }
+    
+    def search_invoices(
+        self, 
+        user_id: str, 
+        query: str = None, 
+        date_from: str = None, 
+        date_to: str = None,
+        min_amount: float = None,
+        max_amount: float = None,
+        page: int = 1, 
+        limit: int = 10
+    ) -> dict[str, Any]:
+        """Advanced search for user invoices with filters."""
+        try:
+            with get_db_session() as session:
+                offset = (page - 1) * limit
+                
+                # Build base query
+                base_query = session.query(InvoiceModel).filter(
+                    InvoiceModel.user_id == user_id
+                )
+                
+                # Apply filters
+                if query:
+                    # Search in invoice number, company names, and raw text
+                    search_filter = or_(
+                        InvoiceModel.invoice_number.ilike(f"%{query}%"),
+                        InvoiceModel.raw_text.ilike(f"%{query}%")
+                    )
+                    
+                    # Join with companies for name search
+                    base_query = base_query.outerjoin(
+                        CompanyModel, 
+                        or_(
+                            InvoiceModel.vendor_id == CompanyModel.id,
+                            InvoiceModel.customer_id == CompanyModel.id
+                        )
+                    ).filter(
+                        or_(
+                            search_filter,
+                            CompanyModel.company_name.ilike(f"%{query}%")
+                        )
+                    )
+                
+                if date_from:
+                    base_query = base_query.filter(InvoiceModel.invoice_date >= date_from)
+                
+                if date_to:
+                    base_query = base_query.filter(InvoiceModel.invoice_date <= date_to)
+                
+                if min_amount is not None:
+                    base_query = base_query.filter(InvoiceModel.net_amount >= min_amount)
+                
+                if max_amount is not None:
+                    base_query = base_query.filter(InvoiceModel.net_amount <= max_amount)
+                
+                # Get total count
+                total = base_query.count()
+                
+                # Get results with eager loading
+                invoices = base_query.options(
+                    joinedload(InvoiceModel.vendor),
+                    joinedload(InvoiceModel.customer)
+                ).order_by(
+                    InvoiceModel.created_at.desc()
+                ).offset(offset).limit(limit).all()
+                
+                # Convert to dict format
+                invoice_list = []
+                for invoice in invoices:
+                    invoice_list.append({
+                        "id": str(invoice.id),
+                        "invoice_number": invoice.invoice_number,
+                        "invoice_date": invoice.invoice_date,
+                        "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
+                        "currency": invoice.currency,
+                        "vendor_name": invoice.vendor.company_name if invoice.vendor else None,
+                        "customer_name": invoice.customer.company_name if invoice.customer else None,
+                        "extraction_confidence": invoice.extraction_confidence,
+                        "original_file_id": invoice.original_file_id,
+                        "created_at": invoice.created_at.isoformat()
+                    })
+                
+                return {
+                    "invoices": invoice_list,
+                    "pagination": {
+                        "page": page,
+                        "limit": limit,
+                        "total": total,
+                        "pages": (total + limit - 1) // limit
+                    },
+                    "filters": {
+                        "query": query,
+                        "date_from": date_from,
+                        "date_to": date_to,
+                        "min_amount": min_amount,
+                        "max_amount": max_amount
+                    }
+                }
+                
+        except Exception as e:
+            logger.error(f"Error searching invoices for user {user_id}: {e}")
+            return {
+                "invoices": [],
+                "pagination": {"page": page, "limit": limit, "total": 0, "pages": 0},
+                "filters": {}
             }

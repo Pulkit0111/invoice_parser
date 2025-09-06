@@ -102,22 +102,22 @@ class AuthService:
                 ).first()
                 
                 if not user:
-                    logger.warning(f"Authentication failed: user not found - {username}")
+                    logger.warning(f"Authentication failed: user not found - {email}")
                     return None
                 
                 if not user.is_active:
-                    logger.warning(f"Authentication failed: user inactive - {username}")
+                    logger.warning(f"Authentication failed: user inactive - {email}")
                     return None
                 
                 if not verify_password(password, user.hashed_password):
-                    logger.warning(f"Authentication failed: invalid password - {username}")
+                    logger.warning(f"Authentication failed: invalid password - {email}")
                     return None
                 
-                logger.info(f"User authenticated successfully: {username}")
+                logger.info(f"User authenticated successfully: {email}")
                 return user
                 
         except Exception as e:
-            logger.error(f"Error authenticating user {username}: {e}")
+            logger.error(f"Error authenticating user {email}: {e}")
             return None
     
     def login_user(self, login_data: UserLoginSchema) -> TokenSchema:
@@ -226,11 +226,9 @@ class AuthService:
                 
                 return UserSchema(
                     id=str(user.id),
-                    username=user.email,
+                    name=user.name,
                     email=user.email,
-                    full_name=user.full_name,
-                    is_active=user.is_active,
-                    created_at=user.created_at.isoformat()
+                    is_active=user.is_active
                 )
                 
         except Exception as e:
@@ -263,10 +261,26 @@ class AuthService:
                     InvoiceModel.created_at >= thirty_days_ago
                 ).count()
                 
+                # Calculate total amount processed
+                from sqlalchemy import func
+                total_amount = session.query(func.sum(InvoiceModel.net_amount)).filter(
+                    InvoiceModel.user_id == user_id,
+                    InvoiceModel.net_amount.isnot(None)
+                ).scalar() or 0
+                
+                # Calculate storage used (count of files)
+                files_count = session.query(InvoiceModel).filter(
+                    InvoiceModel.user_id == user_id,
+                    InvoiceModel.original_file_id.isnot(None)
+                ).count()
+                
                 return {
                     "total_invoices": invoice_count,
                     "recent_invoices": recent_count,
-                    "success_rate": 100.0,  # Placeholder - could calculate from processing results
+                    "success_rate": 100.0 if invoice_count > 0 else 0.0,
+                    "total_amount": float(total_amount),
+                    "storage_used": files_count,
+                    "storage_limit": 1000,  # Default limit
                     "account_created": True
                 }
                 
@@ -276,5 +290,8 @@ class AuthService:
                 "total_invoices": 0,
                 "recent_invoices": 0,
                 "success_rate": 0.0,
+                "total_amount": 0.0,
+                "storage_used": 0,
+                "storage_limit": 1000,
                 "account_created": False
             }

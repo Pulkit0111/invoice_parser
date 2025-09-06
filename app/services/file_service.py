@@ -262,3 +262,50 @@ class FileService:
         except Exception as e:
             logger.error(f"Error cleaning up files for user {user_id}: {e}")
             return 0
+    
+    def generate_thumbnail(self, file_path: Path, size: int = 150) -> Optional[Path]:
+        """
+        Generate a thumbnail for an image file.
+        
+        Args:
+            file_path: Path to the original image file
+            size: Thumbnail size in pixels (square)
+            
+        Returns:
+            Path to generated thumbnail or None if failed
+        """
+        try:
+            from PIL import Image
+            import os
+            
+            # Create thumbnails directory
+            thumbnails_dir = self.upload_base_dir / "thumbnails"
+            thumbnails_dir.mkdir(exist_ok=True)
+            
+            # Generate thumbnail filename
+            file_stem = file_path.stem
+            thumbnail_name = f"{file_stem}_{size}.jpg"
+            thumbnail_path = thumbnails_dir / thumbnail_name
+            
+            # Check if thumbnail already exists
+            if thumbnail_path.exists():
+                return thumbnail_path
+            
+            # Open and resize image
+            with Image.open(file_path) as img:
+                # Convert to RGB if necessary
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                
+                # Create thumbnail maintaining aspect ratio
+                img.thumbnail((size, size), Image.Resampling.LANCZOS)
+                
+                # Save thumbnail
+                img.save(thumbnail_path, "JPEG", quality=85)
+                
+            logger.info(f"Generated thumbnail: {thumbnail_path}")
+            return thumbnail_path
+            
+        except Exception as e:
+            logger.error(f"Error generating thumbnail for {file_path}: {e}")
+            return None

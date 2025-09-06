@@ -42,7 +42,7 @@ function StatsCards({ stats, loading }) {
     {
       id: 'success_rate',
       title: 'Success Rate',
-      value: `${Math.round((stats?.success_rate || 0) * 100)}%`,
+      value: `${Math.round(stats?.success_rate || 0)}%`,
       icon: CheckCircleIcon,
       iconBg: 'bg-green-100 dark:bg-green-900',
       iconColor: 'text-green-600 dark:text-green-300',
@@ -52,7 +52,7 @@ function StatsCards({ stats, loading }) {
     {
       id: 'recent_activity',
       title: 'This Week',
-      value: stats?.recent_activity || 0,
+      value: stats?.recent_invoices || 0,
       icon: ClockIcon,
       iconBg: 'bg-blue-100 dark:bg-blue-900',
       iconColor: 'text-blue-600 dark:text-blue-300',

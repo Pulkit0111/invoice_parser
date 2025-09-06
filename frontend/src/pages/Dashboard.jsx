@@ -34,7 +34,8 @@ function Dashboard() {
         ]);
 
         if (statsResult.success) {
-          setStats(statsResult.data);
+          // Extract statistics from nested structure
+          setStats(statsResult.data.statistics || statsResult.data);
         } else {
           console.warn('Failed to fetch stats:', statsResult.error);
           // Set default stats for demo

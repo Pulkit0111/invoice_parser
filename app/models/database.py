@@ -170,7 +170,9 @@ class TaxCalculationModel(Base):
         return f"<TaxCalculation(id={self.id}, invoice_id={self.invoice_id}, total_tax={self.total_tax})>"
 
 
-# Performance Indexes
+# Performance Indexes - Enhanced for common query patterns
+
+# Single column indexes (existing)
 Index('idx_invoices_number', InvoiceModel.invoice_number)
 Index('idx_invoices_date', InvoiceModel.invoice_date)
 Index('idx_invoices_user', InvoiceModel.user_id)
@@ -178,3 +180,24 @@ Index('idx_companies_gstin', CompanyModel.gstin)
 Index('idx_line_items_invoice', LineItemModel.invoice_id)
 Index('idx_addresses_company', AddressModel.company_id)
 Index('idx_users_email', UserModel.email)
+
+# Composite indexes for common query patterns
+Index('idx_invoices_user_date', InvoiceModel.user_id, InvoiceModel.created_at.desc())
+Index('idx_invoices_user_number', InvoiceModel.user_id, InvoiceModel.invoice_number)
+Index('idx_invoices_user_amount', InvoiceModel.user_id, InvoiceModel.net_amount)
+Index('idx_companies_gstin_name', CompanyModel.gstin, CompanyModel.company_name)
+Index('idx_invoices_vendor_date', InvoiceModel.vendor_id, InvoiceModel.created_at.desc())
+Index('idx_invoices_customer_date', InvoiceModel.customer_id, InvoiceModel.created_at.desc())
+Index('idx_invoices_file_user', InvoiceModel.original_file_id, InvoiceModel.user_id)
+
+# Partial indexes for specific conditions
+Index('idx_invoices_active_files', InvoiceModel.user_id, InvoiceModel.original_file_id, 
+      postgresql_where=InvoiceModel.original_file_id.isnot(None))
+Index('idx_invoices_with_amounts', InvoiceModel.user_id, InvoiceModel.net_amount,
+      postgresql_where=InvoiceModel.net_amount.isnot(None))
+
+# Full-text search indexes for text fields (PostgreSQL specific)
+Index('idx_invoices_text_search', InvoiceModel.raw_text, postgresql_using='gin',
+      postgresql_ops={'raw_text': 'gin_trgm_ops'})
+Index('idx_companies_name_search', CompanyModel.company_name, postgresql_using='gin',
+      postgresql_ops={'company_name': 'gin_trgm_ops'})

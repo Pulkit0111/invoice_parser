@@ -4,7 +4,7 @@ File Management Routes
 Handles secure file upload, download, and management with user isolation.
 """
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from fastapi.responses import FileResponse
 
 from app.services.file_service import FileService
@@ -129,6 +129,60 @@ async def download_file(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to download file"
+        )
+
+
+@router.get("/files/{file_id}/thumbnail")
+async def get_file_thumbnail(
+    file_id: str,
+    size: int = Query(150, ge=50, le=500, description="Thumbnail size in pixels"),
+    current_user: UserModel = Depends(get_current_user),
+    file_service: FileService = Depends(get_file_service)
+):
+    """
+    Get thumbnail of an image file (only if user owns it).
+    
+    Args:
+        file_id: File identifier
+        size: Thumbnail size in pixels (default: 150)
+        current_user: Authenticated user
+        file_service: File service instance
+        
+    Returns:
+        Thumbnail image response
+    """
+    try:
+        # Get file path (includes access control check)
+        file_path = file_service.get_file_path(file_id, str(current_user.id))
+        
+        if not file_path:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found or access denied"
+            )
+        
+        # Generate thumbnail
+        thumbnail_path = file_service.generate_thumbnail(file_path, size)
+        
+        if not thumbnail_path:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to generate thumbnail"
+            )
+        
+        return FileResponse(
+            path=thumbnail_path,
+            media_type="image/jpeg",
+            filename=f"thumbnail_{file_id}.jpg"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting thumbnail for file {file_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get thumbnail"
         )
 
 

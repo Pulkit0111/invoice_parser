@@ -30,6 +30,17 @@ class Settings(BaseSettings):
     DB_MAX_OVERFLOW: int = 10
     DB_POOL_TIMEOUT: int = 30
     DB_POOL_RECYCLE: int = 3600
+    DB_POOL_PRE_PING: bool = True
+    DB_ECHO: bool = False
+    DB_ECHO_POOL: bool = False
+    
+    # Connection retry configuration
+    DB_MAX_RETRIES: int = 3
+    DB_RETRY_DELAY: float = 1.0
+    
+    # Query timeout configuration
+    DB_QUERY_TIMEOUT: int = 30
+    DB_STATEMENT_TIMEOUT: int = 60
     
     # AI Configuration
     GOOGLE_API_KEY: str
@@ -61,3 +72,41 @@ settings = Settings()
 def get_settings() -> Settings:
     """Get application settings instance."""
     return settings
+
+
+def get_database_config() -> dict:
+    """Get optimized database configuration based on environment."""
+    config = {
+        "pool_size": settings.DB_POOL_SIZE,
+        "max_overflow": settings.DB_MAX_OVERFLOW,
+        "pool_timeout": settings.DB_POOL_TIMEOUT,
+        "pool_recycle": settings.DB_POOL_RECYCLE,
+        "pool_pre_ping": settings.DB_POOL_PRE_PING,
+        "echo": settings.DB_ECHO,
+        "echo_pool": settings.DB_ECHO_POOL,
+    }
+    
+    # Environment-specific optimizations
+    if settings.ENVIRONMENT == "production":
+        config.update({
+            "pool_size": max(10, settings.DB_POOL_SIZE),
+            "max_overflow": max(20, settings.DB_MAX_OVERFLOW),
+            "pool_timeout": 60,
+            "pool_recycle": 7200,  # 2 hours in production
+        })
+    elif settings.ENVIRONMENT == "development":
+        config.update({
+            "pool_size": 3,
+            "max_overflow": 5,
+            "echo": settings.DEBUG,
+            "echo_pool": settings.DEBUG,
+        })
+    elif settings.ENVIRONMENT == "testing":
+        config.update({
+            "pool_size": 1,
+            "max_overflow": 2,
+            "pool_timeout": 10,
+            "echo": False,
+        })
+    
+    return config

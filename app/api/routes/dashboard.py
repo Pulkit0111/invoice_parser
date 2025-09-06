@@ -61,8 +61,9 @@ async def get_user_statistics(
         return {
             "user": {
                 "name": current_user.name,
-                
-                
+                "email": current_user.email,
+                "id": str(current_user.id),
+                "is_active": current_user.is_active
             },
             "statistics": stats
         }

@@ -14,8 +14,14 @@ from app.models.database import UserModel
 from app.api.dependencies import get_invoice_service
 from app.api.routes.auth import get_current_user
 from app.services.invoice_service import InvoiceService
+from app.services.file_service import FileService
 
 router = APIRouter(tags=["invoices"])
+
+
+def get_file_service() -> FileService:
+    """Dependency to get file service instance."""
+    return FileService()
 
 
 @router.get("/supported-formats")
@@ -142,15 +148,19 @@ async def process_and_save_invoice(
     file: UploadFile = File(...),
     auto_save: bool = True,
     current_user: UserModel = Depends(get_current_user),
-    invoice_service: InvoiceService = Depends(get_invoice_service)
+    invoice_service: InvoiceService = Depends(get_invoice_service),
+    file_service: FileService = Depends(get_file_service)
 ):
     """
-    Complete pipeline: process invoice and optionally save to database.
+    Complete pipeline: save file, process invoice, and optionally save to database.
     
-    This endpoint combines parsing and saving in a single operation.
+    This endpoint combines file saving, parsing and database saving in a single operation.
     """
     try:
-        # Read file data
+        # First, save the uploaded file
+        file_id, file_info = await file_service.save_uploaded_file(file, str(current_user.id))
+        
+        # Read file data for processing
         file_data = await file.read()
         content_type = file.content_type or "application/octet-stream"
         filename = file.filename or "unknown"
@@ -163,9 +173,10 @@ async def process_and_save_invoice(
         if not is_valid:
             raise HTTPException(status_code=400, detail=error_message)
         
-        # Process and optionally save
+        # Process and optionally save with file information
         parse_result, save_result = await invoice_service.process_and_save_invoice(
-            file_data, content_type, filename, auto_save, str(current_user.id)
+            file_data, content_type, filename, auto_save, str(current_user.id), 
+            file_id=file_id, original_filename=filename
         )
         
         return {

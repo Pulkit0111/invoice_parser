@@ -121,9 +121,8 @@ class TokenSchema(BaseModel):
 class UserInDBSchema(BaseModel):
     """Schema for user data from database."""
     id: str
-    username: str
+    name: str  # Changed from username to match UserModel
     email: str
-    full_name: Optional[str] = None
     hashed_password: str
     is_active: bool
     created_at: str

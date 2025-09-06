@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { 
   TrashIcon,
   DocumentTextIcon,
@@ -8,18 +8,258 @@ import {
 } from '../ui/Icons';
 import Button from '../ui/Button';
 
-// Invoice Table Component with thumbnails and actions
-function InvoiceTable({ 
+// Memoized Invoice Row Component
+const InvoiceRow = memo(({ 
+  invoice, 
+  isDeleting, 
+  onDelete, 
+  onViewDetails 
+}) => {
+  const handleDeleteClick = useCallback(() => {
+    onDelete(invoice.id);
+  }, [invoice.id, onDelete]);
+
+  const handleViewClick = useCallback(() => {
+    onViewDetails(invoice);
+  }, [invoice, onViewDetails]);
+
+  return (
+    <tr className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 h-10 w-10">
+            {invoice.original_file_id ? (
+              <img
+                className="h-10 w-10 rounded-lg object-cover border border-gray-300"
+                src={`/api/files/${invoice.original_file_id}/thumbnail?size=40`}
+                alt="Invoice thumbnail"
+                loading="lazy"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className="h-10 w-10 rounded-lg bg-gray-700 flex items-center justify-center border border-gray-600"
+              style={{ display: invoice.original_file_id ? 'none' : 'flex' }}
+            >
+              <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-white">
+              {invoice.invoice_number || 'N/A'}
+            </div>
+            <div className="text-sm text-gray-400">
+              {invoice.invoice_date || 'No date'}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-white">
+          {invoice.vendor_name || 'Unknown Vendor'}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-white">
+          {invoice.customer_name || 'Unknown Customer'}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-white">
+          {invoice.currency} {invoice.net_amount?.toLocaleString() || '0.00'}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 w-2.5 h-2.5 rounded-full mr-2 bg-green-400"></div>
+          <span className="text-sm text-gray-400">
+            {new Date(invoice.created_at).toLocaleDateString()}
+          </span>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div className="flex items-center justify-end space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleViewClick}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            <PhotoIcon className="h-4 w-4 mr-1" />
+            View
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDeleteClick}
+            disabled={isDeleting}
+            className="text-red-600 hover:text-red-900 disabled:opacity-50"
+          >
+            {isDeleting ? (
+              <div className="h-4 w-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin mr-1" />
+            ) : (
+              <TrashIcon className="h-4 w-4 mr-1" />
+            )}
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+InvoiceRow.displayName = 'InvoiceRow';
+
+// Memoized Pagination Component
+const PaginationControls = memo(({ 
+  pagination, 
+  onPageChange 
+}) => {
+  const handlePreviousPage = useCallback(() => {
+    if (pagination.page > 1) {
+      onPageChange(pagination.page - 1);
+    }
+  }, [pagination.page, onPageChange]);
+
+  const handleNextPage = useCallback(() => {
+    if (pagination.page < pagination.pages) {
+      onPageChange(pagination.page + 1);
+    }
+  }, [pagination.page, pagination.pages, onPageChange]);
+
+  const pageNumbers = useMemo(() => {
+    const current = pagination.page;
+    const total = pagination.pages;
+    const pages = [];
+    
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (current <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(total);
+      } else if (current >= total - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = total - 4; i <= total; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(total);
+      }
+    }
+    
+    return pages;
+  }, [pagination.page, pagination.pages]);
+
+  // Only show pagination if there are more than 5 total items
+  if (pagination.total <= 5) return null;
+
+  return (
+    <div className="bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-700 sm:px-6">
+      <div className="flex-1 flex justify-between sm:hidden">
+        <Button
+          variant="outline"
+          onClick={handlePreviousPage}
+          disabled={pagination.page === 1}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleNextPage}
+          disabled={pagination.page === pagination.pages}
+        >
+          Next
+        </Button>
+      </div>
+      <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm text-gray-300">
+            Showing{' '}
+            <span className="font-medium">
+              {((pagination.page - 1) * pagination.limit) + 1}
+            </span>{' '}
+            to{' '}
+            <span className="font-medium">
+              {Math.min(pagination.page * pagination.limit, pagination.total)}
+            </span>{' '}
+            of{' '}
+            <span className="font-medium">{pagination.total}</span>{' '}
+            results
+          </p>
+        </div>
+        <div>
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              onClick={handlePreviousPage}
+              disabled={pagination.page === 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="sr-only">Previous</span>
+              <ChevronLeftIcon className="h-5 w-5" />
+            </button>
+            
+            {pageNumbers.map((pageNum, index) => (
+              pageNum === '...' ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                >
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={pageNum}
+                  onClick={() => onPageChange(pageNum)}
+                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                    pageNum === pagination.page
+                      ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              )
+            ))}
+            
+            <button
+              onClick={handleNextPage}
+              disabled={pagination.page === pagination.pages}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="sr-only">Next</span>
+              <ChevronRightIcon className="h-5 w-5" />
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+PaginationControls.displayName = 'PaginationControls';
+
+// Main Invoice Table Component with performance optimizations
+const InvoiceTable = memo(({ 
   invoices, 
   loading, 
   onDeleteInvoice,
   pagination,
   onPageChange 
-}) {
+}) => {
   const [deletingIds, setDeletingIds] = useState(new Set());
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-  const handleDelete = async (invoiceId) => {
+  const handleDelete = useCallback(async (invoiceId) => {
     if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
       return;
     }
@@ -28,6 +268,8 @@ function InvoiceTable({
     
     try {
       await onDeleteInvoice(invoiceId);
+    } catch (error) {
+      console.error('Failed to delete invoice:', error);
     } finally {
       setDeletingIds(prev => {
         const newSet = new Set(prev);
@@ -35,35 +277,24 @@ function InvoiceTable({
         return newSet;
       });
     }
-  };
+  }, [onDeleteInvoice]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return 'Invalid Date';
-    }
-  };
+  const handleViewDetails = useCallback((invoice) => {
+    setSelectedInvoice(invoice);
+  }, []);
 
-
-  const getThumbnailComponent = (invoice) => {
-    // For now, we'll show a placeholder since we don't have actual thumbnails
-    // In a real implementation, this would show the actual invoice thumbnail
-    return (
-      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-        {invoice.original_filename?.toLowerCase().includes('.pdf') ? (
-          <DocumentTextIcon className="h-8 w-8 text-gray-400" />
-        ) : (
-          <PhotoIcon className="h-8 w-8 text-gray-400" />
-        )}
-      </div>
-    );
-  };
+  // Memoize rendered invoice rows for better performance
+  const invoiceRows = useMemo(() => {
+    return invoices.map((invoice) => (
+      <InvoiceRow
+        key={invoice.id}
+        invoice={invoice}
+        isDeleting={deletingIds.has(invoice.id)}
+        onDelete={handleDelete}
+        onViewDetails={handleViewDetails}
+      />
+    ));
+  }, [invoices, deletingIds, handleDelete, handleViewDetails]);
 
   if (loading) {
     return (
@@ -110,7 +341,7 @@ function InvoiceTable({
             </p>
           </div>
           
-          {pagination && pagination.total > pagination.limit && (
+          {pagination && pagination.total > 5 && (
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -141,74 +372,42 @@ function InvoiceTable({
       {/* Table */}
       <div className="overflow-x-auto">
         {invoices && invoices.length > 0 ? (
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Invoice
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Invoice Number
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  {/* Invoice Preview */}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex items-center justify-center">
-                      {getThumbnailComponent(invoice)}
-                    </div>
-                  </td>
-
-                  {/* Invoice Number */}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {invoice.invoice_number || 'No Number'}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {invoice.original_filename || 'Unknown File'}
-                    </div>
-                  </td>
-
-                  {/* Date */}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                      {formatDate(invoice.created_at)}
-                    </div>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                    <div className="flex items-center justify-center space-x-2">
-                      <button
-                        onClick={() => handleDelete(invoice.id)}
-                        disabled={deletingIds.has(invoice.id)}
-                        className="text-red-600 hover:text-red-900 transition-colors disabled:opacity-50"
-                        title="Delete Invoice"
-                      >
-                        {deletingIds.has(invoice.id) ? (
-                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <TrashIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
+          <>
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-800/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Invoice Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Vendor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
+                {invoiceRows}
+              </tbody>
+            </table>
+            
+            <PaginationControls
+              pagination={pagination}
+              onPageChange={onPageChange}
+            />
+          </>
         ) : (
-          /* Empty State */
           <div className="text-center py-12">
             <DocumentTextIcon className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No invoices yet</h3>
@@ -223,6 +422,8 @@ function InvoiceTable({
       </div>
     </div>
   );
-}
+});
+
+InvoiceTable.displayName = 'InvoiceTable';
 
 export default InvoiceTable;
