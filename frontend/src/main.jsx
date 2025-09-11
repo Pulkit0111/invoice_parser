@@ -10,13 +10,17 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Register service worker for PWA features
-serviceWorker.register({
-  onSuccess: () => {
-    console.log('App is ready for offline use');
-  },
-  onUpdate: (registration) => {
-    console.log('New app version available');
-    // You could show a notification here
-  }
-});
+// Temporarily disable service worker registration to fix loading issues
+// TODO: Re-enable once service worker issues are resolved
+// serviceWorker.register({
+//   onSuccess: () => {
+//     console.log('App is ready for offline use');
+//   },
+//   onUpdate: (registration) => {
+//     console.log('New app version available');
+//     // You could show a notification here
+//   }
+// });
+
+// Unregister any existing service worker to clear the cache
+serviceWorker.unregister();

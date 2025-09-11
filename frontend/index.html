@@ -19,7 +19,7 @@
     
     <!-- Icons and Manifest -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="manifest" href="/manifest.json" />
+    <!-- <link rel="manifest" href="/manifest.json" /> --> <!-- Temporarily disabled to fix PWA popup -->
     
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
@@ -41,7 +41,8 @@
   <body>
     <div id="root"></div>
     
-    <!-- PWA Install Banner -->
+    <!-- PWA Install Banner - Temporarily disabled -->
+    <!--
     <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 bg-indigo-600 text-white p-4 rounded-lg shadow-lg z-50">
       <div class="flex items-center justify-between">
         <div>
@@ -58,10 +59,12 @@
         </div>
       </div>
     </div>
+    -->
     
     <script type="module" src="/src/main.jsx"></script>
     
-    <!-- PWA Installation Script -->
+    <!-- PWA Installation Script - Temporarily disabled to fix installation popup -->
+    <!--
     <script>
       // PWA Installation
       let deferredPrompt;
@@ -140,5 +143,6 @@
         console.log('App is offline');
       });
     </script>
+    -->
   </body>
 </html>

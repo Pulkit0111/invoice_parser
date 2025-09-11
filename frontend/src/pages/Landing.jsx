@@ -96,46 +96,107 @@ function Landing() {
 
             </div>
 
-            {/* Hero Image/Demo */}
+            {/* Hero Image/Demo - Stacked Invoices */}
             <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
-              <div className="relative mx-auto w-full rounded-lg shadow-2xl lg:max-w-md">
-                {/* Sample Invoice Demo */}
-                <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 dark:border-gray-700 p-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                  <div className="border-b border-gray-200 dark:border-gray-700 dark:border-gray-700 pb-4 mb-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100">INVOICE</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-400">#INV-2024-001</p>
+              <div className="relative mx-auto w-full lg:max-w-md">
+                {/* Stack of Invoice Demos */}
+                <div className="relative h-96 w-80 mx-auto">
+                  
+                  {/* Bottom Invoice - Least visible */}
+                  <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 shadow-lg transform rotate-12 translate-x-4 translate-y-4 z-10 opacity-70">
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">INVOICE</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">#INV-2024-003</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Date: 2024-12-07</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-400">Date: 2024-12-05</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-400">Due: 2024-12-20</p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Marketing Services</span>
+                        <span className="font-medium dark:text-gray-200">$1,800.00</span>
+                      </div>
+                      <div className="border-t dark:border-gray-600 pt-3 flex justify-between font-semibold">
+                        <span className="dark:text-gray-200">Total</span>
+                        <span className="text-violet-600 dark:text-violet-400">$1,800.00</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Middle Invoice */}
+                  <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 shadow-xl transform rotate-6 translate-x-2 translate-y-2 z-20 opacity-85">
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">INVOICE</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">#INV-2024-002</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Date: 2024-12-06</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Consulting Services</span>
+                        <span className="font-medium dark:text-gray-200">$2,200.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Travel Expenses</span>
+                        <span className="font-medium dark:text-gray-200">$300.00</span>
+                      </div>
+                      <div className="border-t dark:border-gray-600 pt-3 flex justify-between font-semibold">
+                        <span className="dark:text-gray-200">Total</span>
+                        <span className="text-violet-600 dark:text-violet-400">$2,500.00</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top Invoice - Most prominent with hover effect */}
+                  <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-500 z-30 hover:z-40 hover:scale-105">
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">INVOICE</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">#INV-2024-001</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Date: 2024-12-05</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Due: 2024-12-20</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Web Development Services</span>
+                        <span className="font-medium dark:text-gray-200">$2,500.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">UI/UX Design</span>
+                        <span className="font-medium dark:text-gray-200">$1,200.00</span>
+                      </div>
+                      <div className="border-t dark:border-gray-600 pt-3 flex justify-between font-semibold">
+                        <span className="dark:text-gray-200">Total</span>
+                        <span className="text-violet-600 dark:text-violet-400">$3,700.00</span>
+                      </div>
+                    </div>
+                    
+                    {/* AI Processing Indicator */}
+                    <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-green-400 dark:bg-green-400 rounded-full animate-pulse mr-2"></div>
+                        <span className="text-sm text-green-800 dark:text-green-300 font-medium">AI Extracted in 2.3s</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300 dark:text-gray-400">Web Development Services</span>
-                      <span className="font-medium dark:text-gray-200">$2,500.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300 dark:text-gray-400">UI/UX Design</span>
-                      <span className="font-medium dark:text-gray-200">$1,200.00</span>
-                    </div>
-                    <div className="border-t dark:border-gray-600 pt-3 flex justify-between font-semibold">
-                      <span className="dark:text-gray-200">Total</span>
-                      <span className="text-violet-600 dark:text-violet-400">$3,700.00</span>
-                    </div>
-                  </div>
-                  
-                  {/* AI Processing Indicator */}
-                  <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-400 dark:bg-green-400 rounded-full animate-pulse mr-2"></div>
-                      <span className="text-sm text-green-800 dark:text-green-300 font-medium">AI Extracted in 2.3s</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

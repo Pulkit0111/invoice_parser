@@ -173,8 +173,6 @@ function Dashboard() {
             invoices={invoices}
             loading={invoicesLoading}
             onDeleteInvoice={handleDeleteInvoice}
-            pagination={pagination}
-            onPageChange={handlePageChange}
           />
         </div>
       </div>

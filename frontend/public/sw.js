@@ -101,7 +101,7 @@ async function networkFirstStrategy(request) {
     // Fall back to cache
     const cachedResponse = await cache.match(request);
     if (cachedResponse) {
-      console.log('Service Worker: Serving from cache (network failed):', request.url);
+      console.warn('Service Worker: Network failed, serving from cache:', request.url);
       return cachedResponse;
     }
     
@@ -115,7 +115,7 @@ async function cacheFirstStrategy(request) {
   const cachedResponse = await cache.match(request);
   
   if (cachedResponse) {
-    console.log('Service Worker: Serving from cache:', request.url);
+    // Only log in development mode - skipping since process.env not available in SW
     return cachedResponse;
   }
   
@@ -145,12 +145,18 @@ async function staleWhileRevalidateStrategy(request) {
       return networkResponse;
     })
     .catch((error) => {
-      console.error('Service Worker: Network request failed:', error);
+      // Only log actual network errors, not every cache hit
+      if (!cachedResponse) {
+        console.warn('Service Worker: Network request failed and no cache available:', error);
+      }
     });
   
   // Return cached version immediately if available
   if (cachedResponse) {
-    console.log('Service Worker: Serving from cache (stale):', request.url);
+    // Only log cache hits for debugging, not in production
+    // Note: Can't use process.env in service worker, so we'll skip debug logging
+    // Update cache in background
+    networkResponsePromise;
     return cachedResponse;
   }
   
