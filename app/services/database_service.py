@@ -17,7 +17,7 @@ from sqlalchemy import func, and_, or_
 from app.core.database import get_db_session
 from app.models.database import (
     InvoiceModel, CompanyModel, AddressModel, 
-    LineItemModel, TaxCalculationModel
+    LineItemModel, TaxCalculationModel, AddressType, ExtractionConfidence
 )
 from app.models.schemas import InvoiceDataSchema
 
@@ -92,11 +92,11 @@ class DatabaseService:
                     state=getattr(company_info.address, 'state', None),
                     country=getattr(company_info.address, 'country', None),
                     pincode=getattr(company_info.address, 'pincode', None),
-                    address_type="billing"
+                    address_type=AddressType.billing
                 )
                 session.add(address)
             
-            logger.info(f"Created new company: {company_info.company_name}")
+            logger.info(f"Created new company: {company_name}")
             return company
             
         except Exception as e:
@@ -147,7 +147,7 @@ class DatabaseService:
                     net_amount=invoice_data.net_amount,
                     amount_in_words=invoice_data.amount_in_words,
                     qr_code_data=invoice_data.qr_code_data,
-                    extraction_confidence=invoice_data.extraction_confidence or "medium",
+                    extraction_confidence=ExtractionConfidence(invoice_data.extraction_confidence or "medium"),
                     raw_text=invoice_data.raw_text,
                     original_file_id=invoice_data.original_file_id,
                     original_filename=invoice_data.original_filename,
@@ -232,6 +232,7 @@ class DatabaseService:
                         "invoice_number": invoice.invoice_number,
                         "invoice_date": invoice.invoice_date,
                         "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
+                        "total_amount": float(invoice.net_amount) if invoice.net_amount else None,
                         "created_at": invoice.created_at.isoformat()
                     }
                 return None
@@ -290,6 +291,7 @@ class DatabaseService:
                         "invoice_number": invoice.invoice_number,
                         "invoice_date": invoice.invoice_date,
                         "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
+                        "total_amount": float(invoice.net_amount) if invoice.net_amount else None,
                         "currency": invoice.currency,
                         "extraction_confidence": invoice.extraction_confidence,
                         "original_file_id": invoice.original_file_id,
@@ -440,6 +442,7 @@ class DatabaseService:
                         "invoice_number": invoice.invoice_number,
                         "invoice_date": invoice.invoice_date,
                         "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
+                        "total_amount": float(invoice.net_amount) if invoice.net_amount else None,
                         "currency": invoice.currency,
                         "vendor_name": invoice.vendor.company_name if invoice.vendor else None,
                         "customer_name": invoice.customer.company_name if invoice.customer else None,
@@ -472,3 +475,108 @@ class DatabaseService:
                 "pagination": {"page": page, "limit": limit, "total": 0, "pages": 0},
                 "filters": {}
             }
+    
+    def get_complete_invoice_details(self, invoice_id: str, user_id: str) -> Optional[dict]:
+        """Get complete invoice details with all relationships."""
+        try:
+            with get_db_session() as session:
+                invoice = session.query(InvoiceModel).options(
+                    joinedload(InvoiceModel.vendor).joinedload(CompanyModel.addresses),
+                    joinedload(InvoiceModel.customer).joinedload(CompanyModel.addresses),
+                    selectinload(InvoiceModel.line_items),
+                    joinedload(InvoiceModel.tax_calculation)
+                ).filter(
+                    InvoiceModel.id == invoice_id,
+                    InvoiceModel.user_id == user_id
+                ).first()
+                
+                if not invoice:
+                    return None
+                
+                # Convert to dict with all relationships
+                return {
+                    "id": str(invoice.id),
+                    "invoice_number": invoice.invoice_number,
+                    "invoice_date": invoice.invoice_date.isoformat() if invoice.invoice_date else None,
+                    "due_date": invoice.due_date.isoformat() if invoice.due_date else None,
+                    "currency": invoice.currency,
+                    "gross_amount": float(invoice.gross_amount) if invoice.gross_amount else None,
+                    "net_amount": float(invoice.net_amount) if invoice.net_amount else None,
+                    "total_amount": float(invoice.net_amount) if invoice.net_amount else None,  # For frontend compatibility
+                    "amount_in_words": invoice.amount_in_words,
+                    "qr_code_data": invoice.qr_code_data,
+                    "extraction_confidence": invoice.extraction_confidence.value if invoice.extraction_confidence else "medium",
+                    "raw_text": invoice.raw_text,
+                    "original_file_id": invoice.original_file_id,
+                    "original_filename": invoice.original_filename,
+                    "created_at": invoice.created_at.isoformat(),
+                    "updated_at": invoice.updated_at.isoformat(),
+                    
+                    # Vendor information
+                    "vendor": {
+                        "id": str(invoice.vendor.id) if invoice.vendor else None,
+                        "company_name": invoice.vendor.company_name if invoice.vendor else None,
+                        "gstin": invoice.vendor.gstin if invoice.vendor else None,
+                        "phone": invoice.vendor.phone if invoice.vendor else None,
+                        "email": invoice.vendor.email if invoice.vendor else None,
+                        "addresses": [
+                            {
+                                "street": addr.street,
+                                "city": addr.city,
+                                "state": addr.state,
+                                "country": addr.country,
+                                "pincode": addr.pincode,
+                                "type": addr.address_type.value if addr.address_type else "billing"
+                            } for addr in (invoice.vendor.addresses if invoice.vendor else [])
+                        ]
+                    } if invoice.vendor else None,
+                    
+                    # Customer information
+                    "customer": {
+                        "id": str(invoice.customer.id) if invoice.customer else None,
+                        "company_name": invoice.customer.company_name if invoice.customer else None,
+                        "gstin": invoice.customer.gstin if invoice.customer else None,
+                        "phone": invoice.customer.phone if invoice.customer else None,
+                        "email": invoice.customer.email if invoice.customer else None,
+                        "addresses": [
+                            {
+                                "street": addr.street,
+                                "city": addr.city,
+                                "state": addr.state,
+                                "country": addr.country,
+                                "pincode": addr.pincode,
+                                "type": addr.address_type.value if addr.address_type else "billing"
+                            } for addr in (invoice.customer.addresses if invoice.customer else [])
+                        ]
+                    } if invoice.customer else None,
+                    
+                    # Line items
+                    "line_items": [
+                        {
+                            "id": str(item.id),
+                            "serial_number": item.serial_number,
+                            "description": item.description,
+                            "hsn_code": item.hsn_code,
+                            "quantity": float(item.quantity) if item.quantity else None,
+                            "unit": item.unit,
+                            "rate": float(item.rate) if item.rate else None,
+                            "amount": float(item.amount) if item.amount else None
+                        } for item in invoice.line_items
+                    ],
+                    
+                    # Tax calculations
+                    "tax_calculation": {
+                        "taxable_amount": float(invoice.tax_calculation.taxable_amount) if invoice.tax_calculation and invoice.tax_calculation.taxable_amount else None,
+                        "cgst_rate": float(invoice.tax_calculation.cgst_rate) if invoice.tax_calculation and invoice.tax_calculation.cgst_rate else None,
+                        "cgst_amount": float(invoice.tax_calculation.cgst_amount) if invoice.tax_calculation and invoice.tax_calculation.cgst_amount else None,
+                        "sgst_rate": float(invoice.tax_calculation.sgst_rate) if invoice.tax_calculation and invoice.tax_calculation.sgst_rate else None,
+                        "sgst_amount": float(invoice.tax_calculation.sgst_amount) if invoice.tax_calculation and invoice.tax_calculation.sgst_amount else None,
+                        "igst_rate": float(invoice.tax_calculation.igst_rate) if invoice.tax_calculation and invoice.tax_calculation.igst_rate else None,
+                        "igst_amount": float(invoice.tax_calculation.igst_amount) if invoice.tax_calculation and invoice.tax_calculation.igst_amount else None,
+                        "total_tax": float(invoice.tax_calculation.total_tax) if invoice.tax_calculation and invoice.tax_calculation.total_tax else None
+                    } if invoice.tax_calculation else None
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting complete invoice details: {e}")
+            return None

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     
     # Database Configuration
-    DATABASE_URL: str
+    DATABASE_URL: str = "postgresql://user:password@localhost:5432/invoice_parser"
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
     DB_POOL_TIMEOUT: int = 30
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     DB_STATEMENT_TIMEOUT: int = 60
     
     # AI Configuration
-    GOOGLE_API_KEY: str
+    GOOGLE_API_KEY: str = "your-google-api-key-here"
     AI_MODEL_NAME: str = "gemini-2.0-flash"
     AI_TEMPERATURE: float = 0.0
     
@@ -59,10 +59,12 @@ class Settings(BaseSettings):
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        "extra": "ignore"  # Allow extra fields from environment
+    }
 
 
 # Global settings instance

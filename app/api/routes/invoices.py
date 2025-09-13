@@ -11,10 +11,11 @@ from app.models.schemas import (
     InvoiceDataSchema, ParseResponseSchema, SaveResponseSchema
 )
 from app.models.database import UserModel
-from app.api.dependencies import get_invoice_service
+from app.api.dependencies import get_invoice_service, get_database_service
 from app.api.routes.auth import get_current_user
 from app.services.invoice_service import InvoiceService
 from app.services.file_service import FileService
+from app.services.database_service import DatabaseService
 
 router = APIRouter(tags=["invoices"])
 
@@ -191,4 +192,46 @@ async def process_and_save_invoice(
         raise HTTPException(
             status_code=500,
             detail=f"Pipeline error: {str(e)}"
+        )
+
+
+@router.get("/invoices/{invoice_id}")
+async def get_invoice_details(
+    invoice_id: str,
+    current_user: UserModel = Depends(get_current_user),
+    db_service: DatabaseService = Depends(get_database_service)
+):
+    """
+    Get complete invoice details with all relationships.
+    
+    Returns detailed invoice information including:
+    - Basic invoice data (number, date, amounts)
+    - Vendor and customer information with addresses
+    - Complete line items with descriptions and amounts
+    - Tax calculation breakdown
+    - File attachment information
+    """
+    try:
+        invoice = db_service.get_complete_invoice_details(
+            invoice_id=invoice_id,
+            user_id=str(current_user.id)
+        )
+        
+        if not invoice:
+            raise HTTPException(
+                status_code=404,
+                detail="Invoice not found or access denied"
+            )
+        
+        return {
+            "success": True,
+            "data": invoice
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve invoice details: {str(e)}"
         )

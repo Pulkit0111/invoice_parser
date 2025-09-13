@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Union
 from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 from email_validator import validate_email, EmailNotValidError
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, field_validator, Field
 import bleach
 
 from app.core.exceptions import ValidationException
@@ -258,15 +258,17 @@ class InputValidator:
 class SecureValidator(BaseModel):
     """Base model with enhanced validation and sanitization."""
     
-    class Config:
+    model_config = {
         # Validate all fields, even when not required
-        validate_all = True
+        "validate_default": True,
         # Allow population by field name or alias
-        allow_population_by_field_name = True
+        "populate_by_name": True,
         # Use enum values
-        use_enum_values = True
+        "use_enum_values": True
+    }
     
-    @validator('*', pre=True)
+    @field_validator('*', mode='before')
+    @classmethod
     def sanitize_strings(cls, v):
         """Sanitize string inputs."""
         if isinstance(v, str):
@@ -281,7 +283,8 @@ class UserRegistrationValidator(SecureValidator):
     email: str = Field(..., min_length=5, max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
     
-    @validator('name')
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         """Validate user name."""
         if not v or not v.strip():
@@ -296,12 +299,14 @@ class UserRegistrationValidator(SecureValidator):
         
         return sanitized
     
-    @validator('email')
+    @field_validator('email')
+    @classmethod
     def validate_email(cls, v):
         """Validate email address."""
         return InputValidator.validate_email_address(v)
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         """Validate password."""
         return InputValidator.validate_password(v)
@@ -317,7 +322,8 @@ class InvoiceDataValidator(SecureValidator):
     net_amount: Optional[Union[str, float, Decimal]] = None
     currency: Optional[str] = Field("INR", max_length=3)
     
-    @validator('invoice_number')
+    @field_validator('invoice_number')
+    @classmethod
     def validate_invoice_number(cls, v):
         """Validate invoice number."""
         if not v:
@@ -330,7 +336,8 @@ class InvoiceDataValidator(SecureValidator):
         
         return sanitized
     
-    @validator('invoice_date')
+    @field_validator('invoice_date')
+    @classmethod
     def validate_invoice_date(cls, v):
         """Validate invoice date."""
         if not v:
@@ -347,7 +354,8 @@ class InvoiceDataValidator(SecureValidator):
         
         raise ValueError("Invalid date format")
     
-    @validator('vendor_name', 'customer_name')
+    @field_validator('vendor_name', 'customer_name')
+    @classmethod
     def validate_company_name(cls, v):
         """Validate company names."""
         if not v:
@@ -361,7 +369,8 @@ class InvoiceDataValidator(SecureValidator):
         
         return sanitized
     
-    @validator('net_amount')
+    @field_validator('net_amount')
+    @classmethod
     def validate_amount(cls, v):
         """Validate monetary amount."""
         if v is None:
@@ -372,7 +381,8 @@ class InvoiceDataValidator(SecureValidator):
         except ValidationException as e:
             raise ValueError(str(e))
     
-    @validator('currency')
+    @field_validator('currency')
+    @classmethod
     def validate_currency(cls, v):
         """Validate currency code."""
         if not v:

@@ -50,10 +50,11 @@ class BaseResponse(BaseModel, Generic[T]):
     timestamp: datetime = Field(default_factory=datetime.now, description="Response timestamp")
     data: Optional[T] = Field(None, description="Response data payload")
     
-    class Config:
-        json_encoders = {
+    model_config = {
+        "json_encoders": {
             datetime: lambda v: v.isoformat()
         }
+    }
 
 
 class SuccessResponse(BaseResponse[T]):
@@ -139,10 +140,11 @@ class HealthCheckResponse(BaseModel):
     environment: str = Field(..., description="Environment name")
     components: Dict[str, Any] = Field(default_factory=dict, description="Component status details")
     
-    class Config:
-        json_encoders = {
+    model_config = {
+        "json_encoders": {
             datetime: lambda v: v.isoformat()
         }
+    }
 
 
 class ProcessingResponse(BaseModel):
@@ -153,10 +155,11 @@ class ProcessingResponse(BaseModel):
     estimated_completion: Optional[datetime] = Field(None, description="Estimated completion time")
     result_url: Optional[str] = Field(None, description="URL to retrieve results")
     
-    class Config:
-        json_encoders = {
+    model_config = {
+        "json_encoders": {
             datetime: lambda v: v.isoformat()
         }
+    }
 
 
 class FileUploadResponse(BaseModel):
@@ -169,10 +172,11 @@ class FileUploadResponse(BaseModel):
     download_url: Optional[str] = Field(None, description="URL to download the file")
     thumbnail_url: Optional[str] = Field(None, description="URL to file thumbnail")
     
-    class Config:
-        json_encoders = {
+    model_config = {
+        "json_encoders": {
             datetime: lambda v: v.isoformat()
         }
+    }
 
 
 # Response factory functions

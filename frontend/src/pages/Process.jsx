@@ -81,7 +81,7 @@ function Process() {
     try {
       const result = await apiRequest('/api/save-invoice', {
         method: 'POST',
-        body: JSON.stringify(results)
+        body: JSON.stringify(results.data)
       });
 
       if (result.success) {
