@@ -9,6 +9,7 @@ from typing import Optional, Any
 import os
 from pathlib import Path
 import uuid
+from datetime import datetime
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
@@ -476,6 +477,21 @@ class DatabaseService:
                 "filters": {}
             }
     
+    def _serialize_date(self, date_value) -> Optional[str]:
+        """Safely serialize date values to ISO format string."""
+        if not date_value:
+            return None
+        
+        # If it's already a string, return as-is (assuming it's in valid format)
+        if isinstance(date_value, str):
+            return date_value
+        
+        # If it's a datetime object, convert to ISO format
+        if isinstance(date_value, datetime):
+            return date_value.isoformat()
+        
+        return None
+
     def get_complete_invoice_details(self, invoice_id: str, user_id: str) -> Optional[dict]:
         """Get complete invoice details with all relationships."""
         try:
@@ -497,8 +513,8 @@ class DatabaseService:
                 return {
                     "id": str(invoice.id),
                     "invoice_number": invoice.invoice_number,
-                    "invoice_date": invoice.invoice_date.isoformat() if invoice.invoice_date else None,
-                    "due_date": invoice.due_date.isoformat() if invoice.due_date else None,
+                    "invoice_date": self._serialize_date(invoice.invoice_date),
+                    "due_date": self._serialize_date(invoice.due_date),
                     "currency": invoice.currency,
                     "gross_amount": float(invoice.gross_amount) if invoice.gross_amount else None,
                     "net_amount": float(invoice.net_amount) if invoice.net_amount else None,

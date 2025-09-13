@@ -149,25 +149,6 @@ function Dashboard() {
 
         {/* Main Content */}
         <div className="space-y-6">
-          {/* Getting Started */}
-          {stats?.total_invoices === 0 && (
-            <div className="bg-violet-50 dark:bg-violet-900/20 rounded-lg border border-violet-200 dark:border-violet-800 p-6 max-w-md">
-              <h3 className="text-lg font-semibold text-violet-900 dark:text-violet-100 mb-2">
-                Welcome to Invoice Parser!
-              </h3>
-              <p className="text-violet-700 dark:text-violet-300 text-sm mb-4">
-                Ready to process your first invoice? It only takes a few seconds to get started.
-              </p>
-              
-              <button
-                onClick={() => window.location.href = '/process'}
-                className="w-full bg-violet-600 text-white py-2 px-4 rounded-lg hover:bg-violet-700 dark:hover:bg-violet-700 transition-colors font-medium"
-              >
-                Process First Invoice
-              </button>
-            </div>
-          )}
-
           {/* Invoice Table - Full Width */}
           <InvoiceTable
             invoices={invoices}

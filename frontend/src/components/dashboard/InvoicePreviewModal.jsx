@@ -37,7 +37,7 @@ const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -78,7 +78,7 @@ const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
             </div>
           ) : invoice ? (
             <div className="space-y-6">
-              {/* Basic Info */}
+              {/* Basic Invoice Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
@@ -101,40 +101,32 @@ const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <span className="text-indigo-600">💰</span>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {invoice.currency} {invoice.total_amount?.toLocaleString() || '0.00'}
-                      </p>
+                  {invoice.due_date && (
+                    <div className="flex items-center space-x-3">
+                      <span className="text-indigo-600">⏰</span>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Due Date</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          {new Date(invoice.due_date).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    <span className="text-indigo-600">🏢</span>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Vendor</p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {invoice.vendor_name || 'Unknown Vendor'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <span className="text-indigo-600">👤</span>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Customer</p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {invoice.customer_name || 'Unknown Customer'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
                     <span className="text-indigo-600">💰</span>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                        {invoice.currency} {invoice.total_amount?.toLocaleString() || '0.00'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <span className="text-indigo-600">💵</span>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Net Amount</p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">
@@ -142,8 +134,257 @@ const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
                       </p>
                     </div>
                   </div>
+
+                  {invoice.gross_amount && (
+                    <div className="flex items-center space-x-3">
+                      <span className="text-indigo-600">💳</span>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Gross Amount</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          {invoice.currency} {invoice.gross_amount?.toLocaleString() || '0.00'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Vendor Information */}
+              {invoice.vendor && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <span className="text-indigo-600 mr-2">🏢</span>
+                    Vendor Information
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Company Name</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          {invoice.vendor.company_name || 'N/A'}
+                        </p>
+                      </div>
+                      {invoice.vendor.gstin && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">GSTIN</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.vendor.gstin}
+                          </p>
+                        </div>
+                      )}
+                      {invoice.vendor.phone && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.vendor.phone}
+                          </p>
+                        </div>
+                      )}
+                      {invoice.vendor.email && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.vendor.email}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    {invoice.vendor.addresses && invoice.vendor.addresses.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Address</p>
+                        {invoice.vendor.addresses.map((addr, index) => (
+                          <div key={index} className="text-sm text-gray-900 dark:text-gray-100">
+                            <p>{addr.street}</p>
+                            <p>{addr.city}, {addr.state} {addr.pincode}</p>
+                            <p>{addr.country}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Customer Information */}
+              {invoice.customer && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <span className="text-indigo-600 mr-2">👤</span>
+                    Customer Information
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Company Name</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          {invoice.customer.company_name || 'N/A'}
+                        </p>
+                      </div>
+                      {invoice.customer.gstin && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">GSTIN</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.customer.gstin}
+                          </p>
+                        </div>
+                      )}
+                      {invoice.customer.phone && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.customer.phone}
+                          </p>
+                        </div>
+                      )}
+                      {invoice.customer.email && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.customer.email}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    {invoice.customer.addresses && invoice.customer.addresses.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Address</p>
+                        {invoice.customer.addresses.map((addr, index) => (
+                          <div key={index} className="text-sm text-gray-900 dark:text-gray-100">
+                            <p>{addr.street}</p>
+                            <p>{addr.city}, {addr.state} {addr.pincode}</p>
+                            <p>{addr.country}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Line Items */}
+              {invoice.line_items && invoice.line_items.length > 0 && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <span className="text-indigo-600 mr-2">📋</span>
+                    Line Items
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            S.No
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            HSN
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Qty
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Rate
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Amount
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                        {invoice.line_items.map((item, index) => (
+                          <tr key={item.id || index}>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {item.serial_number || index + 1}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {item.description || 'N/A'}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {item.hsn_code || 'N/A'}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {item.quantity || 0} {item.unit || ''}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {invoice.currency} {item.rate?.toLocaleString() || '0.00'}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {invoice.currency} {item.amount?.toLocaleString() || '0.00'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Tax Calculations */}
+              {invoice.tax_calculation && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <span className="text-indigo-600 mr-2">🧾</span>
+                    Tax Calculations
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Taxable Amount</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          {invoice.currency} {invoice.tax_calculation.taxable_amount?.toLocaleString() || '0.00'}
+                        </p>
+                      </div>
+                      {invoice.tax_calculation.cgst_rate && (
+                        <>
+                          <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">CGST ({invoice.tax_calculation.cgst_rate}%)</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                              {invoice.currency} {invoice.tax_calculation.cgst_amount?.toLocaleString() || '0.00'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">SGST ({invoice.tax_calculation.sgst_rate}%)</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                              {invoice.currency} {invoice.tax_calculation.sgst_amount?.toLocaleString() || '0.00'}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                      {invoice.tax_calculation.igst_rate && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">IGST ({invoice.tax_calculation.igst_rate}%)</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {invoice.currency} {invoice.tax_calculation.igst_amount?.toLocaleString() || '0.00'}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Total Tax</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                          {invoice.currency} {invoice.tax_calculation.total_tax?.toLocaleString() || '0.00'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Amount in Words */}
+              {invoice.amount_in_words && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <span className="text-indigo-600 mr-2">💬</span>
+                    Amount in Words
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <p className="text-gray-900 dark:text-gray-100 italic">
+                      {invoice.amount_in_words}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Additional Details */}
               {invoice.extracted_data && (

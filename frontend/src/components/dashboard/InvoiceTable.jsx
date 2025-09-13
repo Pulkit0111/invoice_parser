@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import InvoicePreviewModal from './InvoicePreviewModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { ConfirmDialog } from '../ui/Notifications';
 
 const InvoiceTable = ({ 
   invoices, 
@@ -10,26 +11,38 @@ const InvoiceTable = ({
   const [deletingIds, setDeletingIds] = useState(new Set());
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState(null);
 
-  const handleDelete = useCallback(async (invoiceId) => {
-    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteClick = useCallback((invoiceId) => {
+    setInvoiceToDelete(invoiceId);
+    setDeleteConfirmOpen(true);
+  }, []);
 
-    setDeletingIds(prev => new Set([...prev, invoiceId]));
+  const handleConfirmDelete = useCallback(async () => {
+    if (!invoiceToDelete) return;
+
+    setDeletingIds(prev => new Set([...prev, invoiceToDelete]));
+    setDeleteConfirmOpen(false);
     
     try {
-      await onDeleteInvoice(invoiceId);
+      await onDeleteInvoice(invoiceToDelete);
     } catch (error) {
       console.error('Failed to delete invoice:', error);
     } finally {
       setDeletingIds(prev => {
         const newSet = new Set(prev);
-        newSet.delete(invoiceId);
+        newSet.delete(invoiceToDelete);
         return newSet;
       });
+      setInvoiceToDelete(null);
     }
-  }, [onDeleteInvoice]);
+  }, [invoiceToDelete, onDeleteInvoice]);
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteConfirmOpen(false);
+    setInvoiceToDelete(null);
+  }, []);
 
   const handleView = useCallback((invoiceId) => {
     setSelectedInvoiceId(invoiceId);
@@ -130,7 +143,7 @@ const InvoiceTable = ({
 
                       {/* Delete Button */}
                       <button
-                        onClick={() => handleDelete(invoice.id)}
+                        onClick={() => handleDeleteClick(invoice.id)}
                         className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-md hover:bg-red-700 transition-colors w-[84px] h-[36px]"
                       >
                         {deletingIds.has(invoice.id) ? (
@@ -156,6 +169,18 @@ const InvoiceTable = ({
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         invoiceId={selectedInvoiceId}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Delete Invoice"
+        message="Are you sure you want to delete this invoice? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        confirmVariant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </>
   );

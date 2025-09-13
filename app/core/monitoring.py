@@ -190,7 +190,7 @@ class SystemMonitor:
                 
                 # Get table statistics
                 result = conn.execute(text("""
-                    SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del, n_live_tup
+                    SELECT schemaname, relname, n_tup_ins, n_tup_upd, n_tup_del, n_live_tup
                     FROM pg_stat_user_tables
                     WHERE schemaname = 'public'
                 """))
