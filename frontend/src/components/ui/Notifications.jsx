@@ -299,6 +299,26 @@ export const ConfirmDialog = memo(({
   onConfirm = () => {},
   onCancel = () => {}
 }) => {
+  // Handle ESC key press
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && isOpen) {
+        onCancel();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Prevent body scrolling
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onCancel]);
+
   if (!isOpen) return null;
 
   const variantClasses = {
@@ -308,23 +328,39 @@ export const ConfirmDialog = memo(({
   };
 
   return createPortal(
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-6">{message}</p>
-        <div className="flex space-x-3 justify-end">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[confirmVariant]}`}
-          >
-            {confirmLabel}
-          </button>
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-4 text-center sm:p-0">
+        {/* Backdrop */}
+        <div 
+          className="modal-overlay"
+          onClick={onCancel}
+        ></div>
+
+        {/* Modal content */}
+        <div 
+          className="inline-block align-middle bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl text-left transform transition-all"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-dialog-title"
+          tabIndex="-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 id="confirm-dialog-title" className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">{message}</p>
+          <div className="flex space-x-3 justify-end">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+            >
+              {cancelLabel}
+            </button>
+            <button
+              onClick={onConfirm}
+              className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[confirmVariant]}`}
+            >
+              {confirmLabel}
+            </button>
+          </div>
         </div>
       </div>
     </div>,

@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
 
 const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
   const { apiRequest } = useAuth();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
+
+  // Add keyboard navigation for ESC key
+  useKeyboardNavigation(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen && invoiceId) {
@@ -37,8 +42,24 @@ const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-4 text-center sm:p-0">
+        {/* Backdrop */}
+        <div 
+          className="modal-overlay"
+          onClick={onClose}
+        ></div>
+
+        {/* Modal content */}
+        <div 
+          ref={modalRef}
+          className="inline-block align-middle bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto text-left transform transition-all"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+          tabIndex="-1"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
@@ -434,14 +455,15 @@ const InvoicePreviewModal = ({ isOpen, onClose, invoiceId }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            Close
-          </button>
+          {/* Footer */}
+          <div className="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
