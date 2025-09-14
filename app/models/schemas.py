@@ -4,7 +4,7 @@ Pydantic Models (API Schemas)
 These models define the structure for API request/response data
 and provide automatic validation and serialization.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
@@ -65,6 +65,10 @@ class InvoiceDataSchema(BaseModel):
     qr_code_data: Optional[str] = None
     extraction_confidence: Optional[str] = "medium"
     raw_text: Optional[str] = None
+    
+    # File references (for enhanced file management)
+    original_file_id: Optional[str] = None
+    original_filename: Optional[str] = None
 
 
 class ParseResponseSchema(BaseModel):
@@ -84,6 +88,46 @@ class SaveResponseSchema(BaseModel):
     error: Optional[str] = None
 
 
+# Authentication Schemas
+
+class UserCreateSchema(BaseModel):
+    """Schema for user registration."""
+    name: str  # Full name of the user
+    email: str  # Using str instead of EmailStr for simplicity
+    password: str
+
+
+class UserSchema(BaseModel):
+    """Schema for user information (response)."""
+    id: str
+    name: str  # Full name of the user
+    email: str
+    is_active: bool
+
+
+class UserLoginSchema(BaseModel):
+    """Schema for user login."""
+    email: str
+    password: str
+
+
+class TokenSchema(BaseModel):
+    """Schema for authentication token response."""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserSchema
+
+
+class UserInDBSchema(BaseModel):
+    """Schema for user data from database."""
+    id: str
+    name: str  # Changed from username to match UserModel
+    email: str
+    hashed_password: str
+    is_active: bool
+    created_at: str
+
+
 # Export schemas for easy importing
 __all__ = [
     "LineItemSchema",
@@ -93,6 +137,12 @@ __all__ = [
     "InvoiceDataSchema",
     "ParseResponseSchema",
     "SaveResponseSchema",
+    # Authentication schemas
+    "UserCreateSchema",
+    "UserSchema",
+    "UserLoginSchema",
+    "TokenSchema",
+    "UserInDBSchema",
     # Backward compatibility aliases
     "LineItem",
     "Address",

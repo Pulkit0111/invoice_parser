@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 
-from app.core.config import get_settings
+from app.core.config import get_settings, get_database_config
 from app.models.database import Base
 
 # Configure logging
@@ -30,15 +30,13 @@ def get_database_engine() -> Engine:
             raise ValueError("DATABASE_URL not configured")
         
         try:
+            db_config = get_database_config()
             engine = create_engine(
                 settings.DATABASE_URL,
-                pool_size=settings.DB_POOL_SIZE,
-                max_overflow=settings.DB_MAX_OVERFLOW,
-                pool_timeout=settings.DB_POOL_TIMEOUT,
-                pool_recycle=settings.DB_POOL_RECYCLE,
-                echo=settings.DEBUG  # Enable SQL logging in debug mode
+                **db_config
             )
-            logger.info("Database engine created successfully")
+            logger.info(f"Database engine created successfully with config: {db_config}")
+            logger.info(f"Pool size: {db_config['pool_size']}, Max overflow: {db_config['max_overflow']}")
         except Exception as e:
             logger.error(f"Failed to create database engine: {e}")
             raise

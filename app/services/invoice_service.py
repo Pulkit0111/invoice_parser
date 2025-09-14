@@ -9,6 +9,8 @@ from datetime import datetime
 from typing import Tuple
 
 from app.core.ai_processor import AIProcessor
+from app.core.logging_config import performance_monitor
+from app.core.websocket_manager import notify_invoice_processing, notify_invoice_completed, notify_invoice_failed
 from app.services.database_service import DatabaseService
 from app.models.schemas import InvoiceDataSchema, ParseResponseSchema, SaveResponseSchema
 
@@ -24,11 +26,13 @@ class InvoiceService:
         self.ai_processor = AIProcessor()
         self.db_service = DatabaseService()
     
+    @performance_monitor("ai_processing", "invoice_extraction")
     async def process_invoice(
         self, 
         file_data: bytes, 
         content_type: str, 
-        filename: str = "invoice"
+        filename: str = "invoice",
+        user_id: str = None
     ) -> ParseResponseSchema:
         """
         Process an invoice image through the complete AI extraction pipeline.
@@ -46,22 +50,47 @@ class InvoiceService:
         try:
             logger.info(f"Starting invoice processing for {filename} ({content_type})")
             
+            # Generate a processing ID for tracking
+            processing_id = f"proc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename[:10]}"
+            
+            # Notify processing start
+            if user_id:
+                await notify_invoice_processing(user_id, processing_id, progress=0)
+            
             # Validate AI processor availability
             if not self.ai_processor.is_available():
+                if user_id:
+                    await notify_invoice_failed(user_id, processing_id, "AI model not available. Check API key configuration.")
                 return ParseResponseSchema(
                     success=False,
                     error="AI model not available. Check API key configuration."
                 )
+            
+            # Notify AI processing progress
+            if user_id:
+                await notify_invoice_processing(user_id, processing_id, progress=25)
             
             # Extract data using AI
             invoice_data, raw_response = await self.ai_processor.extract_invoice_data(
                 file_data, content_type
             )
             
+            # Notify completion progress
+            if user_id:
+                await notify_invoice_processing(user_id, processing_id, progress=75)
+            
             # Calculate processing time
             processing_time = (datetime.now() - start_time).total_seconds()
             
             logger.info(f"Invoice processing completed in {processing_time:.2f}s")
+            
+            # Notify successful completion
+            if user_id:
+                await notify_invoice_completed(user_id, processing_id, {
+                    "filename": filename,
+                    "processing_time": processing_time,
+                    "invoice_data": invoice_data.dict() if invoice_data else None
+                })
             
             return ParseResponseSchema(
                 success=True,
@@ -72,6 +101,8 @@ class InvoiceService:
         except ValueError as e:
             # Image processing errors
             logger.error(f"Image processing error for {filename}: {e}")
+            if user_id:
+                await notify_invoice_failed(user_id, processing_id, f"Image processing error: {str(e)}")
             return ParseResponseSchema(
                 success=False,
                 error=f"Image processing error: {str(e)}"
@@ -80,12 +111,16 @@ class InvoiceService:
         except Exception as e:
             # General processing errors
             logger.error(f"Invoice processing error for {filename}: {e}")
+            if user_id:
+                processing_id = f"proc_error_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                await notify_invoice_failed(user_id, processing_id, f"Processing error: {str(e)}")
             return ParseResponseSchema(
                 success=False,
                 error=f"Processing error: {str(e)}"
             )
     
-    def save_invoice(self, invoice_data: InvoiceDataSchema) -> SaveResponseSchema:
+    @performance_monitor("database_operation", "invoice_save")
+    def save_invoice(self, invoice_data: InvoiceDataSchema, user_id: str) -> SaveResponseSchema:
         """
         Save extracted invoice data to database.
         
@@ -99,7 +134,7 @@ class InvoiceService:
             logger.info(f"Saving invoice to database: {invoice_data.invoice_number}")
             
             # Use database service to save
-            result = self.db_service.save_invoice_to_db(invoice_data)
+            result = self.db_service.save_invoice_to_db(invoice_data, user_id)
             
             # Convert to schema response
             return SaveResponseSchema(
@@ -123,7 +158,10 @@ class InvoiceService:
         file_data: bytes, 
         content_type: str, 
         filename: str = "invoice",
-        auto_save: bool = False
+        auto_save: bool = False,
+        user_id: str = None,
+        file_id: str = None,
+        original_filename: str = None
     ) -> Tuple[ParseResponseSchema, SaveResponseSchema]:
         """
         Complete invoice processing pipeline: extract and optionally save.
@@ -141,9 +179,15 @@ class InvoiceService:
         parse_response = await self.process_invoice(file_data, content_type, filename)
         
         save_response = None
-        if auto_save and parse_response.success and parse_response.data:
+        if auto_save and parse_response.success and parse_response.data and user_id:
+            # Add file information to invoice data before saving
+            if file_id:
+                parse_response.data.original_file_id = file_id
+            if original_filename:
+                parse_response.data.original_filename = original_filename
+            
             # Auto-save if requested and processing succeeded
-            save_response = self.save_invoice(parse_response.data)
+            save_response = self.save_invoice(parse_response.data, user_id)
         
         return parse_response, save_response
     
