@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import InvoicePreviewModal from './InvoicePreviewModal';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { ConfirmDialog } from '../ui/Notifications';
 
@@ -9,8 +8,6 @@ const InvoiceTable = ({
   onDeleteInvoice 
 }) => {
   const [deletingIds, setDeletingIds] = useState(new Set());
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
 
@@ -44,15 +41,6 @@ const InvoiceTable = ({
     setInvoiceToDelete(null);
   }, []);
 
-  const handleView = useCallback((invoiceId) => {
-    setSelectedInvoiceId(invoiceId);
-    setIsModalOpen(true);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedInvoiceId(null);
-  }, []);
 
   if (loading) {
     return (
@@ -132,15 +120,6 @@ const InvoiceTable = ({
                   {/* Actions */}
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex items-center justify-end space-x-3">
-                      {/* View Button */}
-                      <button
-                        onClick={() => handleView(invoice.id)}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        <span className="mr-2">👁️</span>
-                        View
-                      </button>
-
                       {/* Delete Button */}
                       <button
                         onClick={() => handleDeleteClick(invoice.id)}
@@ -163,13 +142,6 @@ const InvoiceTable = ({
           </table>
         </div>
       </div>
-
-      {/* Invoice Preview Modal */}
-      <InvoicePreviewModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        invoiceId={selectedInvoiceId}
-      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
