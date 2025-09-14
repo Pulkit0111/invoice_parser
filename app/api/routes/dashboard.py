@@ -29,6 +29,11 @@ async def get_user_invoices(
     Get current user's invoices with pagination.
     """
     try:
+        # CRITICAL DEBUG: Log the current user info for dashboard
+        logger.error(f"🚨 CRITICAL DEBUG - Dashboard get_user_invoices called")
+        logger.error(f"🚨 CRITICAL DEBUG - current_user.id: {current_user.id}")
+        logger.error(f"🚨 CRITICAL DEBUG - current_user.email: {current_user.email}")
+        
         result = db_service.get_user_invoices(
             user_id=str(current_user.id),
             page=page,

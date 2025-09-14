@@ -33,17 +33,28 @@ class DatabaseService:
         """Generate a default invoice number in format ip-{uuid}."""
         return f"ip-{str(uuid.uuid4())[:8]}"
     
-    def check_duplicate_invoice(self, invoice_number: str) -> bool:
-        """Check if invoice number already exists in database."""
+    def check_duplicate_invoice(self, invoice_number: str, user_id: str = None) -> bool:
+        """Check if invoice number already exists in database for this user."""
         if not invoice_number:
             return False
         
         try:
             with get_db_session() as session:
-                existing = session.query(InvoiceModel).filter(
+                query = session.query(InvoiceModel).filter(
                     InvoiceModel.invoice_number == invoice_number
-                ).first()
-                return existing is not None
+                )
+                
+                # If user_id provided, scope to that user only
+                if user_id:
+                    query = query.filter(InvoiceModel.user_id == user_id)
+                    logger.error(f"🚨 CRITICAL DEBUG - Checking duplicate for user {user_id}, invoice {invoice_number}")
+                else:
+                    logger.error(f"🚨 WARNING - Checking duplicate globally for invoice {invoice_number}")
+                
+                existing = query.first()
+                is_duplicate = existing is not None
+                logger.error(f"🚨 CRITICAL DEBUG - Duplicate check result: {is_duplicate}")
+                return is_duplicate
         except Exception as e:
             logger.error(f"Error checking duplicate invoice: {e}")
             return False
@@ -115,11 +126,15 @@ class DatabaseService:
             Dictionary with success status and details
         """
         try:
+            # CRITICAL DEBUG: Log the user_id being used
+            logger.error(f"🚨 CRITICAL DEBUG - save_invoice_to_db called with user_id: {user_id}")
+            logger.error(f"🚨 CRITICAL DEBUG - Invoice number: {invoice_data.invoice_number}")
+            
             # Generate invoice number if missing for duplicate check
             invoice_number = invoice_data.invoice_number or self.generate_default_invoice_number()
             
-            # Check for duplicate
-            if self.check_duplicate_invoice(invoice_number):
+            # Check for duplicate (scoped to current user)
+            if self.check_duplicate_invoice(invoice_number, user_id):
                 return {
                     "success": False,
                     "duplicate": True,
@@ -139,6 +154,9 @@ class DatabaseService:
                 logger.info(f"Customer result: {customer.company_name if customer else 'None'}")
                 
                 # Create invoice record (invoice_number already generated above)
+                logger.error(f"🚨 CRITICAL DEBUG - Creating invoice with user_id: {user_id}")
+                logger.error(f"🚨 CRITICAL DEBUG - Invoice number being saved: {invoice_number}")
+                
                 invoice = InvoiceModel(
                     invoice_number=invoice_number,
                     invoice_date=invoice_data.invoice_date,
@@ -265,6 +283,9 @@ class DatabaseService:
     def get_user_invoices(self, user_id: str, page: int = 1, limit: int = 10) -> dict[str, Any]:
         """Get invoices for a specific user with pagination and optimized loading."""
         try:
+            # CRITICAL DEBUG: Log the user_id being queried
+            logger.error(f"🚨 CRITICAL DEBUG - get_user_invoices called with user_id: {user_id}")
+            
             with get_db_session() as session:
                 # Calculate offset
                 offset = (page - 1) * limit
@@ -283,6 +304,12 @@ class DatabaseService:
                 ).filter(
                     InvoiceModel.user_id == user_id
                 ).order_by(InvoiceModel.created_at.desc()).offset(offset).limit(limit).all()
+                
+                # CRITICAL DEBUG: Log what invoices were found
+                logger.error(f"🚨 CRITICAL DEBUG - Found {len(invoices)} invoices for user {user_id}")
+                if invoices:
+                    invoice_numbers = [inv.invoice_number for inv in invoices]
+                    logger.error(f"🚨 CRITICAL DEBUG - Invoice numbers: {invoice_numbers}")
                 
                 # Convert to dict format
                 invoice_list = []

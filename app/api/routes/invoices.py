@@ -5,8 +5,11 @@ Handles invoice upload, processing, and database operations.
 """
 from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+import logging
 
 from app.core.config import get_settings
+
+logger = logging.getLogger(__name__)
 from app.models.schemas import (
     InvoiceDataSchema, ParseResponseSchema, SaveResponseSchema
 )
@@ -118,6 +121,12 @@ async def save_invoice_to_database(
         SaveResponseSchema with success status and invoice ID or error details
     """
     try:
+        # CRITICAL DEBUG: Log the current user info
+        logger.error(f"🚨 CRITICAL DEBUG - API save_invoice_to_database called")
+        logger.error(f"🚨 CRITICAL DEBUG - current_user.id: {current_user.id}")
+        logger.error(f"🚨 CRITICAL DEBUG - current_user.email: {current_user.email}")
+        logger.error(f"🚨 CRITICAL DEBUG - Invoice number from request: {invoice_data.invoice_number}")
+        
         # Save using invoice service
         result = invoice_service.save_invoice(invoice_data, str(current_user.id))
         
@@ -158,6 +167,12 @@ async def process_and_save_invoice(
     This endpoint combines file saving, parsing and database saving in a single operation.
     """
     try:
+        # CRITICAL DEBUG: Log the current user info for process-and-save
+        logger.error(f"🚨 CRITICAL DEBUG - API process_and_save_invoice called")
+        logger.error(f"🚨 CRITICAL DEBUG - current_user.id: {current_user.id}")
+        logger.error(f"🚨 CRITICAL DEBUG - current_user.email: {current_user.email}")
+        logger.error(f"🚨 CRITICAL DEBUG - File name: {file.filename}")
+        
         # First, save the uploaded file
         file_id, file_info = await file_service.save_uploaded_file(file, str(current_user.id))
         
